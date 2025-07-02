@@ -5,484 +5,759 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TV-/Streaming-Formatentwicklung: Deep Prompt Template</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            line-height: 1.6;
-            color: #333;
-            max-width: 900px;
-            margin: 20px auto;
-            padding: 20px;
-            background: #f4f4f4;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-        }
-        h1, h2, h3 {
-            color: #0056b3;
-        }
-        hr {
-            border: 0;
-            height: 1px;
-            background: #ccc;
-            margin: 20px 0;
-        }
-        label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
-        }
-        input[type="radio"], input[type="checkbox"] {
-            margin-right: 5px;
-        }
-        input[type="text"], textarea {
-            width: calc(100% - 22px);
-            padding: 10px;
-            margin-bottom: 15px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
+        * {
+            margin: 0;
+            padding: 0;
             box-sizing: border-box;
         }
-        textarea {
-            min-height: 100px;
-            resize: vertical;
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: #1a1a1a;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
         }
-        button {
-            background-color: #007bff;
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
             color: white;
-            padding: 12px 20px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 16px;
-            transition: background-color 0.3s ease;
+            padding: 40px;
+            text-align: center;
+            position: relative;
         }
-        button:hover {
-            background-color: #0056b3;
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="20" cy="20" r="1" fill="white" opacity="0.1"/><circle cx="80" cy="80" r="1" fill="white" opacity="0.1"/><circle cx="40" cy="60" r="1" fill="white" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+            opacity: 0.1;
         }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 10px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .header .subtitle {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            position: relative;
+            z-index: 1;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
         .section {
-            background: #fff;
-            padding: 20px;
-            border-radius: 8px;
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            margin-bottom: 25px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+        }
+
+        .section:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.12);
+        }
+
+        .section h2 {
+            color: #2d3748;
+            font-size: 1.5rem;
+            font-weight: 700;
             margin-bottom: 20px;
-            border: 1px solid #e0e0e0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
-        .radio-group label {
-            display: inline-block;
-            margin-right: 20px;
-            font-weight: normal;
+
+        .section h3 {
+            color: #4a5568;
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin: 20px 0 15px 0;
         }
-        .current-date {
-            font-weight: bold;
-            color: #d9534f; /* Bootstrap's danger color */
+
+        .radio-group {
+            display: grid;
+            gap: 15px;
+            margin-bottom: 20px;
         }
-        #response-container {
-            margin-top: 30px;
+
+        .radio-option {
+            background: #f8fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
             padding: 20px;
-            background: #e9ecef;
-            border-radius: 8px;
-            display: none; /* Initial versteckt */
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
         }
-        #response-container h3 {
-            color: #0056b3;
+
+        .radio-option:hover {
+            background: #edf2f7;
+            border-color: #cbd5e0;
         }
-        #response-text {
-            white-space: pre-wrap; /* Behält Formatierung bei */
-            word-wrap: break-word;
+
+        .radio-option.selected {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-color: #667eea;
+            color: white;
         }
-        .hidden-section {
-            display: none;
+
+        .radio-option input[type="radio"] {
+            position: absolute;
+            opacity: 0;
         }
-        .chat-history {
-            background-color: #f8f9fa;
-            border: 1px solid #dee2e6;
+
+        .radio-option label {
+            display: block;
+            cursor: pointer;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .radio-option .description {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+
+        input[type="text"], textarea {
+            width: 100%;
             padding: 15px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: #f8fafc;
+        }
+
+        input[type="text"]:focus, textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        textarea {
+            min-height: 120px;
+            resize: vertical;
+            font-family: inherit;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2d3748;
+        }
+
+        .button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+        }
+
+        .button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        .button:active {
+            transform: translateY(0);
+        }
+
+        .button.secondary {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        .button.danger {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .current-date {
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+            color: #8b4513;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 700;
+            display: inline-block;
+        }
+
+        .chat-history {
+            background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 20px;
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .chat-message {
             margin-bottom: 15px;
-            border-radius: 5px;
-            max-height: 200px; /* Begrenzte Höhe für Scrollbarkeit */
-            overflow-y: auto; /* Scrollbalken, wenn nötig */
-            font-size: 0.9em;
+            padding: 12px 16px;
+            border-radius: 12px;
+            font-size: 0.95rem;
+            line-height: 1.5;
         }
-        .chat-history p {
-            margin: 5px 0;
-            line-height: 1.4;
+
+        .chat-message.user {
+            background: rgba(102, 126, 234, 0.1);
+            border: 1px solid rgba(102, 126, 234, 0.2);
+            margin-left: 20px;
         }
-        .chat-history .user-message {
-            font-weight: bold;
-            color: #28a745; /* Grün für Nutzer */
+
+        .chat-message.assistant {
+            background: rgba(255, 255, 255, 0.8);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            margin-right: 20px;
         }
-        .chat-history .ai-message {
-            color: #007bff; /* Blau für KI */
+
+        .chat-message .role {
+            font-weight: 700;
+            margin-bottom: 5px;
+            color: #2d3748;
         }
-        .chat-history hr {
-            border-top: 1px dashed #ced4da;
-            margin: 10px 0;
+
+        .response-container {
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+            border-radius: 16px;
+            padding: 25px;
+            margin-top: 25px;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .response-container h3 {
+            color: #8b4513;
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+        }
+
+        .loading {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .loading::after {
+            content: '';
+            width: 20px;
+            height: 20px;
+            border: 2px solid #667eea;
+            border-top: 2px solid transparent;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .checkbox-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin: 15px 0;
+        }
+
+        .checkbox-option {
+            background: #f8fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 15px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .checkbox-option:hover {
+            background: #edf2f7;
+        }
+
+        .checkbox-option.checked {
+            background: rgba(102, 126, 234, 0.1);
+            border-color: #667eea;
+        }
+
+        .checkbox-option input[type="checkbox"] {
+            margin-right: 10px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .content {
+                padding: 20px;
+            }
+            
+            .section {
+                padding: 20px;
+            }
+        }
+
+        .status-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .status-indicator.active {
+            background: rgba(72, 187, 120, 0.1);
+            color: #38a169;
+            border: 1px solid rgba(72, 187, 120, 0.2);
+        }
+
+        .status-indicator.inactive {
+            background: rgba(160, 174, 192, 0.1);
+            color: #718096;
+            border: 1px solid rgba(160, 174, 192, 0.2);
         }
     </style>
 </head>
 <body>
-
-    <h1>🎬 TV-/Streaming-Formatentwicklung: Deep Prompt Template</h1>
-    <hr>
-
-    <form id="formatDevelopmentForm" action="/api/generate_prompt" method="POST">
-        <div class="section">
-            <h2>🧠 Einstieg: Was möchtest du tun?</h2>
-            <div class="radio-group">
-                <input type="radio" id="action_brainstorming" name="action_type" value="brainstorming">
-                <label for="action_brainstorming"><strong>Brainstorming starten</strong> – Ich will zuerst locker Ideen entwickeln (Experten-Chat-Modus)</label><br>
-                <input type="radio" id="action_existing_format" name="action_type" value="existing_format">
-                <label for="action_existing_format"><strong>Weiterentwicklung eines bestehenden Formats</strong></label><br>
-                <input type="radio" id="action_new_development" name="action_type" value="new_development">
-                <label for="action_new_development"><strong>Neuentwicklung in einem bestimmten Genre</strong></label><br>
-                <input type="radio" id="action_pitch_paper" name="action_type" value="pitch_paper">
-                <label for="action_pitch_paper"><strong>Direkt ein Pitch Paper erstellen</strong> (Alle Details manuell eingeben)</label>
-            </div>
-            <button type="button" id="confirm_selection_button" class="hidden-section" style="margin-top: 20px;">Auswahl bestätigen & Weiter</button>
+    <div class="container">
+        <div class="header">
+            <h1>🎬 TV-/Streaming-Formatentwicklung</h1>
+            <div class="subtitle">Deep Prompt Template für innovative Medienformate</div>
         </div>
 
-        <div id="common_expert_description" class="section hidden-section">
-            <p><strong>WICHTIG:</strong> Du arbeitest <strong>tagesaktuell</strong>. Das heutige Datum ist: <span class="current-date" id="current_date"></span>.</p>
-            <p>Verwende es für alle Recherchen, Marktanalysen, Streaming-Trends und zeitliche Relevanzprüfungen.</p>
-            <p><strong>Hinweis:</strong> Für die Generierung wird das Modell <strong>GPT-4o Mini</strong> verwendet.</p>
-        </div>
-
-        <hr id="common_hr" class="hidden-section">
-
-        <div id="brainstorming_section" class="section hidden-section">
-            <h2>💬 Brainstorming-Modus: Locker Ideen entwickeln</h2>
-            <h3>🎯 Ziel des Brainstormings:</h3>
-            <ul>
-                <li>Gemeinsam neue Formatansätze finden</li>
-                <li>Mit gezielten Fragen und strukturiertem Nachfragen durch den Experten</li>
-                <li>Es muss nicht zwangsläufig ein vollständiges Format am Ende entstehen. Wir können auch ergebnislos enden.</li>
-            </ul>
-
-            <div id="brainstorming_chat_history" class="chat-history hidden-section">
-                <h4>Bisheriger Chat-Verlauf:</h4>
+        <div class="content">
+            <form id="formatDevelopmentForm">
+                <div class="section">
+                    <h2>🧠 Was möchtest du entwickeln?</h2>
+                    <p style="margin-bottom: 20px; color: #4a5568;">Wähle deinen bevorzugten Entwicklungsmodus:</p>
+                    
+                    <div class="radio-group">
+                        <div class="radio-option" data-value="brainstorming">
+                            <input type="radio" id="action_brainstorming" name="action_type" value="brainstorming">
+                            <label for="action_brainstorming">💬 Brainstorming starten</label>
+                            <div class="description">Interaktiver Experten-Chat für kreative Ideenfindung</div>
+                        </div>
+                        
+                        <div class="radio-option" data-value="existing_format">
+                            <input type="radio" id="action_existing_format" name="action_type" value="existing_format">
+                            <label for="action_existing_format">🔄 Format weiterentwickeln</label>
+                            <div class="description">Bestehende Formate modernisieren und optimieren</div>
+                        </div>
+                        
+                        <div class="radio-option" data-value="new_development">
+                            <input type="radio" id="action_new_development" name="action_type" value="new_development">
+                            <label for="action_new_development">🆕 Neues Genre entwickeln</label>
+                            <div class="description">Komplett neue Formate in spezifischen Genres</div>
+                        </div>
+                        
+                        <div class="radio-option" data-value="pitch_paper">
+                            <input type="radio" id="action_pitch_paper" name="action_type" value="pitch_paper">
+                            <label for="action_pitch_paper">📄 Pitch Paper erstellen</label>
+                            <div class="description">Detailliertes Pitch-Dokument mit allen Parametern</div>
+                        </div>
+                    </div>
+                    
+                    <button type="button" id="confirm_selection_button" class="button hidden">
+                        Auswahl bestätigen & Weiter →
+                    </button>
                 </div>
 
-            <label for="brainstorming_input">Deine aktuelle Eingabe für den Experten:</label>
-            <textarea id="brainstorming_input" name="brainstorming_input" placeholder="Z.B. 'Ich habe eine vage Idee für eine Reality-Show im Bereich Nachhaltigkeit' oder 'Lass uns über neue Doku-Formate für TikTok nachdenken.'"></textarea>
-            
-            <input type="hidden" name="chat_history_json" id="chat_history_json">
+                <div id="common_info" class="section hidden">
+                    <div class="status-indicator active">
+                        📅 Arbeite tagesaktuell: <span class="current-date" id="current_date"></span>
+                    </div>
+                    <p style="margin-top: 15px; color: #4a5568;">
+                        <strong>Hinweis:</strong> Alle Recherchen, Marktanalysen und Trends werden auf Basis des aktuellen Datums durchgeführt.
+                    </p>
+                </div>
+
+                <!-- Brainstorming Section -->
+                <div id="brainstorming_section" class="section hidden">
+                    <h2>💬 Brainstorming-Modus</h2>
+                    <p style="color: #4a5568; margin-bottom: 20px;">
+                        Entwickle gemeinsam mit dem Experten neue Formatansätze durch gezielten Dialog.
+                    </p>
+
+                    <div id="brainstorming_chat_history" class="chat-history hidden">
+                        <h4 style="margin-bottom: 15px; color: #2d3748;">Bisherige Unterhaltung:</h4>
+                    </div>
+
+                    <label for="brainstorming_input">Deine Nachricht an den Experten:</label>
+                    <textarea id="brainstorming_input" name="brainstorming_input" 
+                              placeholder="Z.B. 'Ich habe eine vage Idee für eine Reality-Show im Bereich Nachhaltigkeit' oder 'Lass uns über neue Doku-Formate für TikTok nachdenken.'"></textarea>
+                    
+                    <input type="hidden" name="chat_history_json" id="chat_history_json">
+                </div>
+
+                <!-- Existing Format Section -->
+                <div id="existing_format_section" class="section hidden">
+                    <h2>🔄 Format weiterentwickeln</h2>
+                    
+                    <div class="form-grid">
+                        <div>
+                            <label for="existing_format_name">Name des bestehenden Formats:</label>
+                            <input type="text" id="existing_format_name" name="existing_format_name" 
+                                   placeholder="Z.B. 'Der große Backwettbewerb'">
+                        </div>
+                    </div>
+
+                    <label for="existing_format_notes">Gewünschte Änderungen und Verbesserungen:</label>
+                    <textarea id="existing_format_notes" name="existing_format_notes" 
+                              placeholder="Z.B. 'Soll jünger werden', 'Mehr Social Media Integration', 'Neue Zielgruppe 18-34'"></textarea>
+                </div>
+
+                <!-- New Development Section -->
+                <div id="new_development_section" class="section hidden">
+                    <h2>🆕 Neues Genre entwickeln</h2>
+                    
+                    <div class="form-grid">
+                        <div>
+                            <label for="new_development_genre">Zielgenre:</label>
+                            <input type="text" id="new_development_genre" name="new_development_genre" 
+                                   placeholder="Z.B. 'Science-Fiction-Doku', 'True Crime Podcast'">
+                        </div>
+                    </div>
+
+                    <label for="new_development_initial_ideas">Erste Ideen und Ansätze:</label>
+                    <textarea id="new_development_initial_ideas" name="new_development_initial_ideas" 
+                              placeholder="Z.B. 'Soll um KI gehen', 'Protagonisten sind Teenager', 'Mystery-Komponente wichtig'"></textarea>
+                </div>
+
+                <!-- Pitch Paper Section -->
+                <div id="pitch_paper_section" class="section hidden">
+                    <h2>📄 Pitch Paper Template</h2>
+                    <p style="color: #4a5568; margin-bottom: 25px;">
+                        Erstelle ein vollständiges Pitch-Dokument für dein TV-/Streaming-Format.
+                    </p>
+
+                    <h3>🔹 1. Auftragsklärung</h3>
+                    <div class="checkbox-group">
+                        <div class="checkbox-option">
+                            <input type="checkbox" id="pp_existing_format_checkbox" name="pp_assignment_type" value="Weiterentwicklung eines bestehenden Formats">
+                            <label for="pp_existing_format_checkbox">Weiterentwicklung bestehender Formate</label>
+                        </div>
+                        <div class="checkbox-option">
+                            <input type="checkbox" id="pp_new_development_checkbox" name="pp_assignment_type" value="Neuentwicklung basierend auf Genre">
+                            <label for="pp_new_development_checkbox">Neuentwicklung nach Genre</label>
+                        </div>
+                    </div>
+
+                    <div class="form-grid">
+                        <div>
+                            <label for="pp_genre_input">Genre (falls Neuentwicklung):</label>
+                            <input type="text" id="pp_genre_input" name="pp_genre_input" placeholder="Genre eingeben" disabled>
+                        </div>
+                    </div>
+
+                    <h3>🔹 2. Marktanalyse (2020–2025)</h3>
+                    <div class="form-grid">
+                        <div>
+                            <label for="top_formats">Top 5 Formate (linear & Streaming):</label>
+                            <textarea id="top_formats" name="market_top_formats" style="min-height: 80px;"></textarea>
+                        </div>
+                        <div>
+                            <label for="market_shares">Marktanteile / Quoten:</label>
+                            <textarea id="market_shares" name="market_shares" style="min-height: 80px;"></textarea>
+                        </div>
+                    </div>
+
+                    <label for="genre_trends">Genre- & Formattrends:</label>
+                    <textarea id="genre_trends" name="market_genre_trends"></textarea>
+
+                    <label for="platform_trends">Plattformtrends:</label>
+                    <textarea id="platform_trends" name="market_platform_trends"></textarea>
+
+                    <h3>🔹 3. Formatentwicklung</h3>
+                    <div class="form-grid">
+                        <div>
+                            <label for="title_claim">Titel & Claim:</label>
+                            <input type="text" id="title_claim" name="format_title_claim">
+                        </div>
+                        <div>
+                            <label for="genre_setting_target">Genre, Setting, Zielgruppe:</label>
+                            <input type="text" id="genre_setting_target" name="format_genre_setting_target">
+                        </div>
+                    </div>
+
+                    <label for="tone_visual">Tonalität & visuelles Konzept:</label>
+                    <textarea id="tone_visual" name="format_tone_visual"></textarea>
+
+                    <label for="usp_zeitgeist">USP & Zeitgeist:</label>
+                    <textarea id="usp_zeitgeist" name="format_usp_zeitgeist"></textarea>
+
+                    <h3>🔹 4. Plattform- & Vermarktungsstrategie</h3>
+                    <div class="form-grid">
+                        <div>
+                            <label for="primary_platform">Primäre Plattform:</label>
+                            <input type="text" id="primary_platform" name="platform_primary">
+                        </div>
+                        <div>
+                            <label for="linear_utilization">Lineare Auswertung:</label>
+                            <input type="text" id="linear_utilization" name="platform_linear">
+                        </div>
+                    </div>
+
+                    <h3>🔹 5. Revision & Qualitätskontrolle</h3>
+                    <div class="checkbox-group">
+                        <div class="checkbox-option">
+                            <input type="checkbox" id="logic_checked" name="revision_logic" value="true">
+                            <label for="logic_checked">Logik geprüft</label>
+                        </div>
+                        <div class="checkbox-option">
+                            <input type="checkbox" id="data_trends_proven" name="revision_data_trends" value="true">
+                            <label for="data_trends_proven">Zahlen & Trends belegt</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section hidden" id="action_buttons">
+                    <button type="submit" id="submit_button" class="button">
+                        🚀 Generieren
+                    </button>
+                    <button type="button" id="reset_chat_button" class="button danger" style="margin-left: 15px;">
+                        🔄 Chat zurücksetzen
+                    </button>
+                </div>
+            </form>
+
+            <div id="response_container" class="response-container hidden">
+                <h3>💡 KI-Antwort:</h3>
+                <div id="response_text"></div>
+            </div>
         </div>
-
-        <div id="existing_format_section" class="section hidden-section">
-            <h2>🔄 Weiterentwicklung eines bestehenden Formats</h2>
-            <label for="existing_format_name">Name des bestehenden Formats:</label>
-            <input type="text" id="existing_format_name" name="existing_format_name" placeholder="Z.B. 'Der große Backwettbewerb'">
-
-            <label for="existing_format_notes">Anmerkungen zur Weiterentwicklung (Was soll verbessert/geändert werden?)</label>
-            <textarea id="existing_format_notes" name="existing_format_notes" placeholder="Z.B. 'Soll jünger werden', 'Mehr Interaktion mit Social Media', 'Neue Location', 'Fokus auf bestimmte Zielgruppe'"></textarea>
-        </div>
-
-        <div id="new_development_section" class="section hidden-section">
-            <h2>🆕 Neuentwicklung in einem bestimmten Genre</h2>
-            <label for="new_development_genre">In welchem Genre möchtest du ein neues Format entwickeln?</label>
-            <input type="text" id="new_development_genre" name="new_development_genre" placeholder="Z.B. 'Science-Fiction-Doku', 'True Crime Podcast', 'Young Adult Drama'">
-
-            <label for="new_development_initial_ideas">Hast du schon erste Ideen oder Stichpunkte, die wir vertiefen sollen?</label>
-            <textarea id="new_development_initial_ideas" name="new_development_initial_ideas" placeholder="Z.B. 'Es soll um Künstliche Intelligenz gehen', 'Protagonisten sind Teenager', 'Soll eine Mystery-Komponente haben'"></textarea>
-        </div>
-
-        <div id="pitch_paper_section" class="section hidden-section">
-            <h2>📄 Pitch Paper Template: TV-/Streaming-Format</h2>
-            <p>Bitte fülle alle relevanten Felder aus, um ein vollständiges Pitch Paper zu generieren.</p>
-            <div class="section-subsection">
-                <h3>🔹 1. Auftragsklärung</h3>
-                <input type="checkbox" id="pp_existing_format_checkbox" name="pp_assignment_type" value="Weiterentwicklung eines bestehenden Formats">
-                <label for="pp_existing_format_checkbox">Weiterentwicklung eines bestehenden Formats</label><br>
-                <input type="checkbox" id="pp_new_development_checkbox" name="pp_assignment_type" value="Neuentwicklung basierend auf Genre">
-                <label for="pp_new_development_checkbox">Neuentwicklung basierend auf Genre:</label>
-                <input type="text" id="pp_genre_input" name="pp_genre_input" placeholder="Genre eingeben">
-            </div>
-
-            <div class="section-subsection">
-                <h3>🔹 2. Marktanalyse (2020–2025)</h3>
-                <h4>Erfolgreiche Formate & Trends</h4>
-                <label for="top_formats">Top 5 Formate (linear & Streaming)</label>
-                <textarea id="top_formats" name="market_top_formats"></textarea>
-                <label for="market_shares">Marktanteile / Quoten</label>
-                <textarea id="market_shares" name="market_shares"></textarea>
-                <label for="genre_trends">Genre- & Formattrends</label>
-                <textarea id="genre_trends" name="market_genre_trends"></textarea>
-                <label for="platform_trends">Plattformtrends</label>
-                <textarea id="platform_trends" name="market_platform_trends"></textarea>
-                <label for="target_group_dynamics">Zielgruppendynamiken</label>
-                <textarea id="target_group_dynamics" name="market_target_group_dynamics"></textarea>
-
-                <h4>Gesellschaftliche & technologische Einflüsse</h4>
-                <label for="influence_factors">Einflussfaktoren (KI, Klimawandel, Social Media, etc.)</label>
-                <textarea id="influence_factors" name="societal_influence_factors"></textarea>
-                <label for="new_viewing_habits">Neue Sehgewohnheiten</label>
-                <textarea id="new_viewing_habits" name="new_viewing_habits"></textarea>
-            </div>
-
-            <div class="section-subsection">
-                <h3>🔹 3. Formatentwicklung</h3>
-                <label for="title_claim">Titel & Claim</label>
-                <input type="text" id="title_claim" name="format_title_claim">
-                <label for="genre_setting_target">Genre, Setting, Zielgruppe</label>
-                <input type="text" id="genre_setting_target" name="format_genre_setting_target">
-                <label for="tone_visual">Tonalität & visuelles Konzept</label>
-                <textarea id="tone_visual" name="format_tone_visual"></textarea>
-                <label for="usp_zeitgeist">USP & Zeitgeist</label>
-                <textarea id="usp_zeitgeist" name="format_usp_zeitgeist"></textarea>
-                <label for="season_episode_structure">Staffelstruktur oder Episodenaufbau</label>
-                <textarea id="season_episode_structure" name="format_season_episode_structure"></textarea>
-            </div>
-
-            <div class="section-subsection">
-                <h3>🔹 4. Plattform- & Vermarktungsstrategie</h3>
-                <label for="primary_platform">Primäre Plattform</label>
-                <input type="text" id="primary_platform" name="platform_primary">
-                <label for="linear_utilization">Lineare Auswertung</label>
-                <input type="text" id="linear_utilization" name="platform_linear">
-                <label for="digital_extension">Digitale Verlängerung</label>
-                <input type="text" id="digital_extension" name="platform_digital">
-                <label for="international_scalability">Internationale Skalierbarkeit</label>
-                <input type="text" id="international_scalability" name="platform_international">
-                <label for="sponsoring_options">Sponsoring- / Werbeoptionen</label>
-                <textarea id="sponsoring_options" name="platform_sponsoring"></textarea>
-            </div>
-
-            <div class="section-subsection">
-                <h3>🔹 5. Bewertung & Ausblick</h3>
-                <label for="success_chances">Erfolgschancen</label>
-                <textarea id="success_chances" name="evaluation_success"></textarea>
-                <label for="risks_solutions">Risiken & Lösungen</label>
-                <textarea id="risks_solutions" name="evaluation_risks"></textarea>
-                <label for="pilot_notes">Hinweise zur Pilotphase</label>
-                <textarea id="pilot_notes" name="evaluation_pilot"></textarea>
-            </div>
-
-            <div class="section-subsection">
-                <h3>🔹 6. Revision & Selbstkontrolle</h3>
-                <input type="checkbox" id="logic_checked" name="revision_logic" value="true">
-                <label for="logic_checked">Logik geprüft</label><br>
-                <input type="checkbox" id="data_trends_proven" name="revision_data_trends" value="true">
-                <label for="data_trends_proven">Zahlen & Trends belegt</label><br>
-                <input type="checkbox" id="formatting_clear" name="revision_formatting" value="true">
-                <label for="formatting_clear">Formatierung klar</label><br>
-                <input type="checkbox" id="sections_complete" name="revision_sections_complete" value="true">
-                <label for="sections_complete">Alle Abschnitte vollständig</label>
-            </div>
-        </div>
-
-        <button type="submit" id="submit_button" class="hidden-section">Absenden</button>
-        <button type="button" id="reset_chat_button" class="hidden-section" style="background-color: #dc3545; margin-top: 10px;">Chat zurücksetzen</button>
-    </form>
-
-    <div id="response-container">
-        <h3>KI-Antwort:</h3>
-        <p id="response-text"></p>
     </div>
 
     <script>
-        // Setzt das aktuelle Datum
-        document.getElementById('current_date').innerText = new Date().toLocaleDateString('de-DE', { year: 'numeric', month: 'long', day: 'numeric' });
+        // Globale Variablen
+        let chatHistory = [];
+        let currentMode = null;
 
-        const commonExpertDescription = document.getElementById('common_expert_description');
-        const commonHr = document.getElementById('common_hr');
-        const brainstormingSection = document.getElementById('brainstorming_section');
-        const existingFormatSection = document.getElementById('existing_format_section');
-        const newDevelopmentSection = document.getElementById('new_development_section');
-        const pitchPaperSection = document.getElementById('pitch_paper_section');
+        // DOM-Elemente
+        const form = document.getElementById('formatDevelopmentForm');
+        const confirmButton = document.getElementById('confirm_selection_button');
         const submitButton = document.getElementById('submit_button');
         const resetButton = document.getElementById('reset_chat_button');
-        const confirmSelectionButton = document.getElementById('confirm_selection_button');
-
-        const brainstormingInput = document.getElementById('brainstorming_input');
         const chatHistoryContainer = document.getElementById('brainstorming_chat_history');
-        const chatHistoryJsonInput = document.getElementById('chat_history_json');
+        const responseContainer = document.getElementById('response_container');
+        const responseText = document.getElementById('response_text');
 
-        const LOCAL_STORAGE_KEY = 'openai_chat_history';
+        // Aktuelles Datum setzen
+        document.getElementById('current_date').textContent = new Date().toLocaleDateString('de-DE', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
 
-        // Hilfsfunktion: Chat-Verlauf aus LocalStorage laden
-        function loadChatHistory() {
-            try {
-                const history = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY));
-                return Array.isArray(history) ? history : [];
-            } catch (e) {
-                console.error("Fehler beim Laden des Chat-Verlaufs aus LocalStorage:", e);
-                return [];
+        // Radio-Button-Handler
+        document.querySelectorAll('input[name="action_type"]').forEach(radio => {
+            radio.addEventListener('change', function() {
+                // Alle Optionen zurücksetzen
+                document.querySelectorAll('.radio-option').forEach(option => {
+                    option.classList.remove('selected');
+                });
+                
+                // Ausgewählte Option markieren
+                this.closest('.radio-option').classList.add('selected');
+                confirmButton.classList.remove('hidden');
+            });
+        });
+
+        // Bestätigung-Handler
+        confirmButton.addEventListener('click', function() {
+            const selectedAction = document.querySelector('input[name="action_type"]:checked');
+            if (!selectedAction) return;
+
+            currentMode = selectedAction.value;
+            
+            // Alle Sektionen verstecken
+            hideAllSections();
+            
+            // Gemeinsame Info anzeigen
+            document.getElementById('common_info').classList.remove('hidden');
+            document.getElementById('action_buttons').classList.remove('hidden');
+            
+            // Spezifische Sektion anzeigen
+            switch(currentMode) {
+                case 'brainstorming':
+                    document.getElementById('brainstorming_section').classList.remove('hidden');
+                    resetButton.classList.remove('hidden');
+                    chatHistory = []; // Chat-Historie zurücksetzen
+                    updateChatDisplay();
+                    break;
+                case 'existing_format':
+                    document.getElementById('existing_format_section').classList.remove('hidden');
+                    resetButton.classList.add('hidden');
+                    break;
+                case 'new_development':
+                    document.getElementById('new_development_section').classList.remove('hidden');
+                    resetButton.classList.add('hidden');
+                    break;
+                case 'pitch_paper':
+                    document.getElementById('pitch_paper_section').classList.remove('hidden');
+                    resetButton.classList.add('hidden');
+                    break;
             }
+        });
+
+        // Checkbox-Handler für Pitch Paper
+        document.getElementById('pp_new_development_checkbox').addEventListener('change', function() {
+            const genreInput = document.getElementById('pp_genre_input');
+            genreInput.disabled = !this.checked;
+            if (!this.checked) genreInput.value = '';
+        });
+
+        // Checkbox-Styling-Handler
+        document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                const option = this.closest('.checkbox-option');
+                if (option) {
+                    option.classList.toggle('checked', this.checked);
+                }
+            });
+        });
+
+        // Form-Submit-Handler
+        form.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            if (currentMode === 'brainstorming') {
+                await handleBrainstormingSubmit();
+            } else {
+                await handleRegularSubmit();
+            }
+        });
+
+        // Reset-Handler
+        resetButton.addEventListener('click', function() {
+            chatHistory = [];
+            updateChatDisplay();
+            document.getElementById('brainstorming_input').value = '';
+            responseContainer.classList.add('hidden');
+        });
+
+        // Hilfsfunktionen
+        function hideAllSections() {
+            const sections = [
+                'brainstorming_section',
+                'existing_format_section', 
+                'new_development_section',
+                'pitch_paper_section'
+            ];
+            sections.forEach(id => {
+                document.getElementById(id).classList.add('hidden');
+            });
         }
 
-        // Hilfsfunktion: Chat-Verlauf in LocalStorage speichern
-        function saveChatHistory(history) {
-            localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(history));
-        }
-
-        // Hilfsfunktion: Chat-Verlauf im UI anzeigen
-        function displayChatHistory(history) {
-            chatHistoryContainer.innerHTML = '<h4>Bisheriger Chat-Verlauf:</h4>';
-            if (history.length === 0) {
-                chatHistoryContainer.classList.add('hidden-section');
+        function updateChatDisplay() {
+            if (chatHistory.length === 0) {
+                chatHistoryContainer.classList.add('hidden');
                 return;
             }
-            chatHistoryContainer.classList.remove('hidden-section');
-            history.forEach(entry => {
-                const p = document.createElement('p');
-                p.classList.add(entry.role === 'user' ? 'user-message' : 'ai-message');
-                p.innerText = `${entry.role === 'user' ? 'Du' : 'Experte'}: ${entry.content}`;
-                chatHistoryContainer.appendChild(p);
+            
+            chatHistoryContainer.classList.remove('hidden');
+            const historyContent = chatHistoryContainer.querySelector('h4').nextSibling;
+            if (historyContent) historyContent.remove();
+            
+            chatHistory.forEach(message => {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = `chat-message ${message.role}`;
+                messageDiv.innerHTML = `
+                    <div class="role">${message.role === 'user' ? '👤 Du' : '🤖 Experte'}:</div>
+                    <div>${message.content}</div>
+                `;
+                chatHistoryContainer.appendChild(messageDiv);
             });
-            chatHistoryContainer.scrollTop = chatHistoryContainer.scrollHeight; // Zum Ende scrollen
+            
+            chatHistoryContainer.scrollTop = chatHistoryContainer.scrollHeight;
         }
 
-        // Hilfsfunktion: Chat-Verlauf zurücksetzen
-        function resetChatHistory() {
-            localStorage.removeItem(LOCAL_STORAGE_KEY);
-            displayChatHistory([]); // UI aktualisieren
-            if (brainstormingInput) brainstormingInput.value = ''; // Inputfeld leeren
-            document.getElementById('response-text').innerText = ''; // KI-Antwort leeren
-            document.getElementById('response-container').style.display = 'none'; // KI-Antwort-Container verstecken
-        }
-
-        const allActionSections = [
-            brainstormingSection,
-            existingFormatSection,
-            newDevelopmentSection,
-            pitchPaperSection,
-            submitButton,
-            resetButton
-        ];
-
-        function hideAllDynamicSections() {
-            allActionSections.forEach(section => section.classList.add('hidden-section'));
-            confirmSelectionButton.classList.add('hidden-section');
-            commonExpertDescription.classList.add('hidden-section');
-            commonHr.classList.add('hidden-section');
-        }
-
-        function showConfirmButton() {
-            const selectedAction = document.querySelector('input[name="action_type"]:checked');
-            if (selectedAction) {
-                confirmSelectionButton.classList.remove('hidden-section');
-            } else {
-                confirmSelectionButton.classList.add('hidden-section');
+        async function handleBrainstormingSubmit() {
+            const userInput = document.getElementById('brainstorming_input').value.trim();
+            
+            // User-Nachricht zur Historie hinzufügen (falls vorhanden)
+            if (userInput) {
+                chatHistory.push({ role: 'user', content: userInput });
             }
+            
+            // Verstecktes Feld für Backend setzen
+            document.getElementById('chat_history_json').value = JSON.stringify(chatHistory);
+            
+            // Input-Feld leeren
+            document.getElementById('brainstorming_input').value = '';
+            
+            // Chat-Display aktualisieren
+            updateChatDisplay();
+            
+            // API-Aufruf
+            await makeApiCall();
         }
 
-        function handleConfirmSelection() {
-            hideAllDynamicSections();
-            document.getElementById('response-container').style.display = 'none';
-
-            const selectedAction = document.querySelector('input[name="action_type"]:checked');
-
-            if (selectedAction) {
-                submitButton.classList.remove('hidden-section'); // Absenden-Button immer anzeigen
-
-                // Bei Moduswechsel immer Chat-Historie zurücksetzen,
-                // außer beim "Pitch Paper" direkt, da dort kein Chat vorgesehen ist.
-                if (selectedAction.value !== 'pitch_paper') {
-                    resetChatHistory(); // Stellt sicher, dass wir bei 0 starten
-                }
-
-                switch (selectedAction.value) {
-                    case 'brainstorming':
-                        brainstormingSection.classList.remove('hidden-section');
-                        resetButton.classList.remove('hidden-section');
-                        // Initialen Prompt für Brainstorming direkt an die KI senden,
-                        // wenn der Chat neu ist (Historie leer)
-                        const currentChatHistory = loadChatHistory();
-                        if (currentChatHistory.length === 0) {
-                            // Sende einen initialen leeren Input, um die KI zu triggern
-                            // Dies wird durch das Backend als "Starte Dialog" interpretiert
-                            brainstormingInput.value = '';
-                            document.getElementById('formatDevelopmentForm').dispatchEvent(new Event('submit', {bubbles: true}));
-                        } else {
-                            displayChatHistory(currentChatHistory);
-                        }
-                        break;
-                    case 'existing_format':
-                        existingFormatSection.classList.remove('hidden-section');
-                        break;
-                    case 'new_development':
-                        newDevelopmentSection.classList.remove('hidden-section');
-                        break;
-                    case 'pitch_paper':
-                        pitchPaperSection.classList.remove('hidden-section');
-                        break;
-                }
-            }
+        async function handleRegularSubmit() {
+            await makeApiCall();
         }
 
-        // Event Listener für die Radio-Buttons zur Auswahl des Aktions-Typs
-        document.querySelectorAll('input[name="action_type"]').forEach(radio => {
-            radio.addEventListener('change', showConfirmButton);
-        });
-
-        // Event Listener für den neuen "Auswahl bestätigen & Weiter" Button
-        confirmSelectionButton.addEventListener('click', handleConfirmSelection);
-
-
-        // Event Listener für die Checkboxen im Pitch Paper für Auftragsklärung
-        document.querySelectorAll('input[name="pp_assignment_type"]').forEach(checkbox => {
-            checkbox.addEventListener('change', function() {
-                const ppGenreInput = document.getElementById('pp_genre_input');
-                const ppNewDevelopmentCheckbox = document.getElementById('pp_new_development_checkbox');
-                if (ppNewDevelopmentCheckbox.checked) {
-                    ppGenreInput.disabled = false;
-                } else {
-                    ppGenreInput.disabled = true;
-                    ppGenreInput.value = '';
-                }
-            });
-        });
-
-        // Handle Form Submission
-        document.getElementById('formatDevelopmentForm').addEventListener('submit', async function(event) {
-            event.preventDefault(); // Verhindert das Standard-Formular-Senden
-
-            const form = event.target;
-            const formData = new FormData(form);
-            const responseContainer = document.getElementById('response-container');
-            const responseText = document.getElementById('response-text');
-            responseText.innerText = 'Generiere Antwort... Bitte warten.';
-            responseContainer.style.display = 'block';
-
-            const selectedAction = document.querySelector('input[name="action_type"]:checked');
-            let currentChatHistory = [];
-            let userMessage = '';
-
-            // Nur im Brainstorming-Modus den Chat-Verlauf handhaben
-            if (selectedAction && selectedAction.value === 'brainstorming') {
-                currentChatHistory = loadChatHistory();
-                userMessage = brainstormingInput.value;
-
-                // Füge die aktuelle Nutzereingabe zur Historie hinzu
-                if (userMessage.trim() !== '') {
-                    currentChatHistory.push({ role: 'user', content: userMessage.trim() });
-                }
-                
-                // Setze das versteckte Feld für den Backend-Versand
-                chatHistoryJsonInput.value = JSON.stringify(currentChatHistory);
-                
-                // Leere das Inputfeld nach dem Senden
-                brainstormingInput.value = ''; // Wichtig: Leere das Feld hier, nicht vorher.
-            } else {
-                // Bei anderen Modi wird die Historie nicht für den API-Aufruf verwendet,
-                // aber der LocalStorage wurde beim Moduswechsel schon zurückgesetzt.
-                chatHistoryJsonInput.value = JSON.stringify([]);
-            }
-
-
+        async function makeApiCall() {
+            // Loading-Zustand anzeigen
+            responseText.innerHTML = '<div class="loading">Generiere Antwort...</div>';
+            responseContainer.classList.remove('hidden');
+            
             try {
-                const response = await fetch(form.action, {
-                    method: form.method,
-                    body: formData
-                });
-
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-
-                const result = await response.json();
-
-                if (result.success) {
-                    responseText.innerText = result.response;
-
-                    // Wenn im Brainstorming-Modus, KI-Antwort zur Historie hinzufügen und speichern
-                    if (selectedAction && selectedAction.value === 'brainstorming') {
-                        currentChatHistory.push({ role: 'assistant', content: result.response });
+                const formData = new FormData(form);
+                
+                // Mock API-Aufruf (ersetze durch deine echte API)
+                const response = await simulateApiCall(formData);
+                
+                responseText.textContent = response;
+                
+                // Bei
