@@ -136,6 +136,7 @@
                 <input type="radio" id="action_pitch_paper" name="action_type" value="pitch_paper">
                 <label for="action_pitch_paper"><strong>Direkt ein Pitch Paper erstellen</strong> (Alle Details manuell eingeben)</label>
             </div>
+            <button type="button" id="confirm_selection_button" class="hidden-section" style="margin-top: 20px;">Auswahl bestätigen & Weiter</button>
         </div>
 
         <hr>
@@ -296,13 +297,14 @@
         const newDevelopmentSection = document.getElementById('new_development_section');
         const pitchPaperSection = document.getElementById('pitch_paper_section');
         const submitButton = document.getElementById('submit_button');
-        const resetButton = document.getElementById('reset_chat_button'); // Neuer Reset-Button
+        const resetButton = document.getElementById('reset_chat_button');
+        const confirmSelectionButton = document.getElementById('confirm_selection_button'); // Neuer Button
 
         const brainstormingInput = document.getElementById('brainstorming_input');
         const chatHistoryContainer = document.getElementById('brainstorming_chat_history');
         const chatHistoryJsonInput = document.getElementById('chat_history_json');
 
-        const LOCAL_STORAGE_KEY = 'openai_chat_history'; // Key für LocalStorage
+        const LOCAL_STORAGE_KEY = 'openai_chat_history';
 
         // Hilfsfunktion: Chat-Verlauf aus LocalStorage laden
         function loadChatHistory() {
@@ -344,43 +346,51 @@
             if (brainstormingInput) brainstormingInput.value = ''; // Inputfeld leeren
             document.getElementById('response-text').innerText = ''; // KI-Antwort leeren
             document.getElementById('response-container').style.display = 'none'; // KI-Antwort-Container verstecken
-            toggleSections(); // Abschnitte neu laden (für initialen Expertentext)
+            // Keine automatische toggleSections() hier, da es vom Confirm-Button ausgelöst wird
         }
 
         const allActionSections = [
+            commonExpertDescription,
+            commonHr,
             brainstormingSection,
             existingFormatSection,
             newDevelopmentSection,
-            pitchPaperSection
+            pitchPaperSection,
+            submitButton,
+            resetButton // Den Reset-Button auch hier verstecken
         ];
 
-        function hideAllActionSections() {
+        function hideAllSections() {
             allActionSections.forEach(section => section.classList.add('hidden-section'));
-            commonExpertDescription.classList.add('hidden-section');
-            commonHr.classList.add('hidden-section');
-            submitButton.classList.add('hidden-section');
-            resetButton.classList.add('hidden-section'); // Reset-Button auch verstecken
-            chatHistoryContainer.classList.add('hidden-section'); // Chat-Verlauf verstecken
+            // Auch den Confirm-Button verstecken, wenn keine Auswahl getroffen ist
+            confirmSelectionButton.classList.add('hidden-section');
         }
 
-        function toggleSections() {
-            hideAllActionSections(); // Alle ausblenden
+        function showConfirmButton() {
             const selectedAction = document.querySelector('input[name="action_type"]:checked');
+            if (selectedAction) {
+                confirmSelectionButton.classList.remove('hidden-section');
+            } else {
+                confirmSelectionButton.classList.add('hidden-section');
+            }
+        }
 
-            // Setzt das aktuelle Datum jedes Mal neu, wenn die Sektionen gewechselt werden
-            document.getElementById('current_date').innerText = new Date().toLocaleDateString('de-DE', { year: 'numeric', month: 'long', day: 'numeric' });
+        function handleConfirmSelection() {
+            hideAllSections(); // Erst alles verstecken
+            const selectedAction = document.querySelector('input[name="action_type"]:checked');
 
             if (selectedAction) {
                 commonExpertDescription.classList.remove('hidden-section');
                 commonHr.classList.remove('hidden-section');
                 submitButton.classList.remove('hidden-section');
-                document.getElementById('response-container').style.display = 'none'; // KI-Antwort verstecken beim Wechsel
+                document.getElementById('response-container').style.display = 'none';
 
                 switch (selectedAction.value) {
                     case 'brainstorming':
                         brainstormingSection.classList.remove('hidden-section');
-                        resetButton.classList.remove('hidden-section'); // Reset-Button anzeigen
-                        displayChatHistory(loadChatHistory()); // Chat-Historie laden und anzeigen
+                        resetButton.classList.remove('hidden-section');
+                        resetChatHistory(); // Neuen Chat starten oder alten laden
+                        displayChatHistory(loadChatHistory()); // Historie laden und anzeigen
                         break;
                     case 'existing_format':
                         existingFormatSection.classList.remove('hidden-section');
@@ -398,6 +408,29 @@
             }
         }
 
+        // Event Listener für die Radio-Buttons zur Auswahl des Aktions-Typs
+        document.querySelectorAll('input[name="action_type"]').forEach(radio => {
+            radio.addEventListener('change', showConfirmButton); // Zeigt den Weiter-Button an
+        });
+
+        // Event Listener für den neuen "Auswahl bestätigen & Weiter" Button
+        confirmSelectionButton.addEventListener('click', handleConfirmSelection);
+
+
+        // Event Listener für die Checkboxen im Pitch Paper für Auftragsklärung
+        document.querySelectorAll('input[name="pp_assignment_type"]').forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                const ppGenreInput = document.getElementById('pp_genre_input');
+                const ppNewDevelopmentCheckbox = document.getElementById('pp_new_development_checkbox');
+                if (ppNewDevelopmentCheckbox.checked) {
+                    ppGenreInput.disabled = false;
+                } else {
+                    ppGenreInput.disabled = true;
+                    ppGenreInput.value = '';
+                }
+            });
+        });
+
         // Handle Form Submission
         document.getElementById('formatDevelopmentForm').addEventListener('submit', async function(event) {
             event.preventDefault(); // Verhindert das Standard-Formular-Senden
@@ -407,7 +440,7 @@
             const responseContainer = document.getElementById('response-container');
             const responseText = document.getElementById('response-text');
             responseText.innerText = 'Generiere Antwort... Bitte warten.';
-            responseContainer.style.display = 'block'; // Antwort-Container anzeigen
+            responseContainer.style.display = 'block';
 
             const selectedAction = document.querySelector('input[name="action_type"]:checked');
             let currentChatHistory = [];
@@ -429,7 +462,8 @@
                 // Leere das Inputfeld nach dem Senden
                 brainstormingInput.value = '';
             } else {
-                // Bei anderen Modi sicherstellen, dass die Historie leer ist
+                // Bei anderen Modi sicherstellen, dass die Historie leer ist (oder relevant bleibt, wenn wir später andere Modi chatfähig machen wollen)
+                // Für jetzt: nur Brainstorming-Chat-Historie senden
                 chatHistoryJsonInput.value = JSON.stringify([]);
             }
 
@@ -470,10 +504,8 @@
 
         // Initialisierung beim Laden der Seite
         document.addEventListener('DOMContentLoaded', function() {
-            // Setzt das korrekte Datum beim Laden
             document.getElementById('current_date').innerText = new Date().toLocaleDateString('de-DE', { year: 'numeric', month: 'long', day: 'numeric' });
-            // Initial alle Aktionssektionen ausblenden
-            hideAllActionSections();
+            hideAllSections(); // Alles initial ausblenden
             // Stellt sicher, dass das Genre-Feld bei "Neuentwicklung" im Pitch Paper korrekt initialisiert wird
             document.getElementById('pp_genre_input').disabled = !document.getElementById('pp_new_development_checkbox').checked;
         });
