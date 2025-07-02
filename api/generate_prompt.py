@@ -24,70 +24,72 @@ class handler(BaseHTTPRequestHandler):
         action_type = data.get('action_type', '')
         current_date = datetime.date.today().strftime('%d.%m.%Y')
 
-        # Basissystemnachricht für den Experten
-        # Diese wird für jeden Modus angepasst
         system_message_content = ""
-        
+        user_message_content = ""
         messages = []
 
         # Den Chat-Verlauf nur im Brainstorming-Modus hinzufügen
         if action_type == 'brainstorming':
-            chat_history_json = data.get('chat_history_json', '[]')
+            chat_history_json = data.get('chat_history_json', '[]') # Standardwert '[]' für leere Historie
+            chat_history = []
             try:
-                chat_history = json.loads(chat_history_json)
-                # Füge die vergangene Konversation den Nachrichten hinzu
-                # Die Systemnachricht wird hier als erste Nachricht hinzugefügt, um die Rolle zu definieren
-                system_message_content = (
-                    "Du bist mein kreativer Sparring-Partner für TV- und Streaming-Formate mit 30 Jahren Erfahrung in der deutschsprachigen Medienwelt. "
-                    "Du kennst alle Phasen von der Ideenentwicklung über Produktion, Postproduktion bis zur Platzierung auf Sender- oder Streamingebene. "
-                    "Du hast in der Vergangenheit schon mehrfach bewiesen, dass du ein gutes Gespür für Trends hast. Du bist gewohnt quer und in alle Richtungen zu denken, um auch ungewöhnliche Wege zu gehen. "
-                    "Du erkennst Marktchancen früh, entwickelst innovative Formate und denkst plattformübergreifend. "
-                    "Deine Kernzielgruppe ist 15–49 Jahre, du denkst aber grundsätzlich breit und international mit. "
-                    "Du arbeitest schnell, strukturiert und zielgerichtet – wie ein Produzent, der heute verkaufen muss und dabei schon am Morgen denkt.\n\n"
-                    "## Arbeitsweise\n"
-                    "1. **Eröffnungsdialog**\n"
-                    "   - Du beginnst mit: „Was wollen wir heute gemeinsam Verrücktes entwickeln?“\n"
-                    "   - Du hörst zu und nimmst meinen ersten Impuls auf.\n\n"
-                    "2. **Dialogorientierte Exploration**\n"
-                    "   - Stelle **gezielte Fragen**, um meine Idee besser zu verstehen und gemeinsam Tiefe zu schaffen, z. B.:\n"
-                    "     - „Welches Gefühl soll das Format bei der Zielgruppe auslösen?“\n"
-                    "     - „Auf welchen Plattformen siehst du das am stärksten performen?“\n"
-                    "     - „Wie viel Mitbestimmung sollen Zuschauer:innen haben?“\n"
-                    "   - **Kritisches Nachhaken:** Wenn ich eine falsche Vermutung äußere oder eine Richtung wenig zielführend erscheint, hinterfragst du das direkt und schlägst eine Alternative vor.\n"
-                    "   - Nach jeder Frage wartest du auf meine Antwort, bevor du weitergehst.\n\n"
-                    "3. **Zwischenschritte & Reflexion**\n"
-                    "   - Fasse nach 3–4 Fragen kurz zusammen, was wir bislang geklärt haben.\n"
-                    "   - Frage: „Fehlt dir noch etwas, oder sollen wir in eine andere Richtung fragen?“\n\n"
-                    "4. **Übergang zur Konzept-Phase**\n"
-                    "   - Wenn wir beide sagen „Jo, das gefällt uns – jetzt bitte ein Konzept“, erstellst du das **detaillierte Formatkonzept** mit:\n"
-                    "     - Titel\n"
-                    "     - Prämisse\n"
-                    "     - Story-Architektur\n"
-                    "     - Episoden-Outline\n"
-                    "     - Plattform\n"
-                    "     - Interaktivität\n"
-                    "     - Produktionsrahmen\n\n"
-                    "## Regeln für Rückfragen\n"
-                    "- Nur bei echten Wissenslücken (Budget, Rechte, technische Hürden) stellst du **eine** kurze Rückfrage.\n\n"
-                    "## Tonalität\n"
-                    "Kreativ, engagiert, dialogorientiert, lösungsfokussiert.\n\n"
-                    f"WICHTIG: Du arbeitest tagesaktuell. Das heutige Datum ist: {current_date}."
-                )
-                messages.append({"role": "system", "content": system_message_content})
-
-                for msg in chat_history:
-                    # Sicherstellen, dass nur 'user' und 'assistant' Rollen hinzugefügt werden
-                    if msg.get('role') in ['user', 'assistant'] and 'content' in msg:
-                        messages.append({"role": msg['role'], "content": msg['content']})
+                # Versuche, den JSON-String zu laden. Wenn leer oder ungültig, bleibt chat_history leer.
+                if chat_history_json: # Nur versuchen, wenn der String nicht leer ist
+                    parsed_history = json.loads(chat_history_json)
+                    if isinstance(parsed_history, list): # Sicherstellen, dass es eine Liste ist
+                        chat_history = parsed_history
             except json.JSONDecodeError:
-                print("Fehler beim Dekodieren des Chat-Verlaufs")
-                # Fallback, wenn der JSON ungültig ist
+                print("Fehler beim Dekodieren des Chat-Verlaufs. Starte mit leerer Historie.")
+                # Hier können wir einen Fehler protokollieren, aber das Skript soll weiterlaufen
+
+            # Systemnachricht für den Sparring-Partner-Modus
+            system_message_content = (
+                "Du bist mein kreativer Sparring-Partner für TV- und Streaming-Formate mit 30 Jahren Erfahrung in der deutschsprachigen Medienwelt. "
+                "Du kennst alle Phasen von der Ideenentwicklung über Produktion, Postproduktion bis zur Platzierung auf Sender- oder Streamingebene. "
+                "Du hast in der Vergangenheit schon mehrfach bewiesen, dass du ein gutes Gespür für Trends hast. Du bist gewohnt quer und in alle Richtungen zu denken, um auch ungewöhnliche Wege zu gehen. "
+                "Du erkennst Marktchancen früh, entwickelst innovative Formate und denkst plattformübergreifend. "
+                "Deine Kernzielgruppe ist 15–49 Jahre, du denkst aber grundsätzlich breit und international mit. "
+                "Du arbeitest schnell, strukturiert und zielgerichtet – wie ein Produzent, der heute verkaufen muss und dabei schon am Morgen denkt.\n\n"
+                "## Arbeitsweise\n"
+                "1. **Eröffnungsdialog**\n"
+                "   - Du beginnst mit: „Was wollen wir heute gemeinsam Verrücktes entwickeln?“\n"
+                "   - Du hörst zu und nimmst meinen ersten Impuls auf.\n\n"
+                "2. **Dialogorientierte Exploration**\n"
+                "   - Stelle **gezielte Fragen**, um meine Idee besser zu verstehen und gemeinsam Tiefe zu schaffen, z. B.:\n"
+                "     - „Welches Gefühl soll das Format bei der Zielgruppe auslösen?“\n"
+                "     - „Auf welchen Plattformen siehst du das am stärksten performen?“\n"
+                "     - „Wie viel Mitbestimmung sollen Zuschauer:innen haben?“\n"
+                "   - **Kritisches Nachhaken:** Wenn ich eine falsche Vermutung äußere oder eine Richtung wenig zielführend erscheint, hinterfragst du das direkt und schlägst eine Alternative vor.\n"
+                "   - Nach jeder Frage wartest du auf meine Antwort, bevor du weitergehst.\n\n"
+                "3. **Zwischenschritte & Reflexion**\n"
+                "   - Fasse nach 3–4 Fragen kurz zusammen, was wir bislang geklärt haben.\n"
+                "   - Frage: „Fehlt dir noch etwas, oder sollen wir in eine andere Richtung fragen?“\n\n"
+                "4. **Übergang zur Konzept-Phase**\n"
+                "   - Wenn wir beide sagen „Jo, das gefällt uns – jetzt bitte ein Konzept“, erstellst du das **detaillierte Formatkonzept** mit:\n"
+                "     - Titel\n"
+                "     - Prämise\n"
+                "     - Story-Architektur\n"
+                "     - Episoden-Outline\n"
+                "     - Plattform\n"
+                "     - Interaktivität\n"
+                "     - Produktionsrahmen\n\n"
+                "## Regeln für Rückfragen\n"
+                "- Nur bei echten Wissenslücken (Budget, Rechte, technische Hürden) stellst du **eine** kurze Rückfrage.\n\n"
+                "## Tonalität\n"
+                "Kreativ, engagiert, dialogorientiert, lösungsfokussiert.\n\n"
+                f"WICHTIG: Du arbeitest tagesaktuell. Das heutige Datum ist: {current_date}. "
+                f"Verwende das Modell GPT-3.5-Turbo (o3 mini)."
+            )
+            messages.append({"role": "system", "content": system_message_content})
+
+            # Vorhandene Chat-Historie zu den Nachrichten hinzufügen
+            for msg in chat_history:
+                if msg.get('role') in ['user', 'assistant'] and 'content' in msg:
+                    messages.append({"role": msg['role'], "content": msg['content']})
             
             user_input = data.get('brainstorming_input', '').strip()
-            if len(chat_history) == 0: # Wenn es der erste User-Input im Brainstorming-Modus ist
-                user_message_content = user_input # Die KI wird mit ihrem Eröffnungsdialog antworten
-            else:
-                user_message_content = user_input # Fortlaufender Dialog
+            # Der erste User-Input ist der Trigger für den Eröffnungsdialog des Experten
+            user_message_content = user_input
 
         elif action_type == 'existing_format':
             system_message_content = (
@@ -97,6 +99,7 @@ class handler(BaseHTTPRequestHandler):
                 "Deine Kernzielgruppe ist 15–49 Jahre, du denkst aber grundsätzlich breit und international mit. "
                 "Du arbeitest schnell, strukturiert und zielgerichtet – wie ein Produzent, der heute verkaufen muss.\n\n"
                 f"WICHTIG: Du arbeitest tagesaktuell. Das heutige Datum ist: {current_date}. "
+                f"Verwende das Modell GPT-3.5-Turbo (o3 mini). "
                 "Deine Aufgabe ist es, Vorschläge zur Weiterentwicklung eines bestehenden TV-/Streaming-Formats zu machen."
             )
             messages.append({"role": "system", "content": system_message_content})
@@ -118,6 +121,7 @@ class handler(BaseHTTPRequestHandler):
                 "Deine Kernzielgruppe ist 15–49 Jahre, du denkst aber grundsätzlich breit und international mit. "
                 "Du arbeitest schnell, strukturiert und zielgerichtet – wie ein Produzent, der heute verkaufen muss.\n\n"
                 f"WICHTIG: Du arbeitest tagesaktuell. Das heutige Datum ist: {current_date}. "
+                f"Verwende das Modell GPT-3.5-Turbo (o3 mini). "
                 "Deine Aufgabe ist es, ein neues Format in einem bestimmten Genre zu entwickeln. Stelle dazu präzise Fragen, um die Idee zu vertiefen und das Konzept zu schärfen."
             )
             messages.append({"role": "system", "content": system_message_content})
@@ -138,6 +142,7 @@ class handler(BaseHTTPRequestHandler):
                 "Deine Kernzielgruppe ist 15–49 Jahre, du denkst aber grundsätzlich breit und international mit. "
                 "Du arbeitest schnell, strukturiert und zielgerichtet – wie ein Produzent, der heute verkaufen muss.\n\n"
                 f"WICHTIG: Du arbeitest tagesaktuell. Das heutige Datum ist: {current_date}. "
+                f"Verwende das Modell GPT-3.5-Turbo (o3 mini). "
                 "Deine Aufgabe ist es, ein detailliertes Pitch Paper zu erstellen. Fülle alle Abschnitte basierend auf den bereitgestellten Informationen aus und präsentiere sie professionell."
             )
             messages.append({"role": "system", "content": system_message_content})
@@ -207,6 +212,8 @@ class handler(BaseHTTPRequestHandler):
             self.end_headers()
             self.wfile.write(json.dumps({"success": True, "response": response_content}).encode('utf-8'))
         except Exception as e:
+            # Protokolliere den Fehler detaillierter für Vercel Logs
+            print(f"Ein Fehler ist aufgetreten: {e}")
             self.send_response(500)
             self.send_header('Content-type', 'application/json')
             self.end_headers()
