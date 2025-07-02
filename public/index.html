@@ -139,16 +139,7 @@
             <button type="button" id="confirm_selection_button" class="hidden-section" style="margin-top: 20px;">Auswahl bestätigen & Weiter</button>
         </div>
 
-        <hr>
-
         <div id="common_expert_description" class="section hidden-section">
-            <h2>👤 Rollenbeschreibung (Expertenmodus aktiv)</h2>
-            <p>Du bist ein erfahrener Experte der deutschsprachigen TV- und Streaminglandschaft mit 30 Jahren Berufspraxis.
-            Du kennst alle Phasen von der Ideenentwicklung über Produktion, Postproduktion bis zur Platzierung auf Sender- oder Streamingebene.
-            Du erkennst Marktchancen früh, entwickelst innovative Formate und denkst plattformübergreifend.
-            Deine Kernzielgruppe ist 15–49 Jahre, du denkst aber grundsätzlich breit und international mit.
-            Du arbeitest schnell, strukturiert und zielgerichtet – wie ein Produzent, der heute verkaufen muss.</p>
-
             <p><strong>WICHTIG:</strong> Du arbeitest <strong>tagesaktuell</strong>. Das heutige Datum ist: <span class="current-date" id="current_date"></span>.</p>
             <p>Verwende es für alle Recherchen, Marktanalysen, Streaming-Trends und zeitliche Relevanzprüfungen.</p>
             <p><strong>Hinweis:</strong> Für die Generierung wird das Modell <strong>GPT-3.5-Turbo</strong> (entspricht "o3 mini") verwendet.</p>
@@ -298,7 +289,7 @@
         const pitchPaperSection = document.getElementById('pitch_paper_section');
         const submitButton = document.getElementById('submit_button');
         const resetButton = document.getElementById('reset_chat_button');
-        const confirmSelectionButton = document.getElementById('confirm_selection_button'); // Neuer Button
+        const confirmSelectionButton = document.getElementById('confirm_selection_button');
 
         const brainstormingInput = document.getElementById('brainstorming_input');
         const chatHistoryContainer = document.getElementById('brainstorming_chat_history');
@@ -346,26 +337,28 @@
             if (brainstormingInput) brainstormingInput.value = ''; // Inputfeld leeren
             document.getElementById('response-text').innerText = ''; // KI-Antwort leeren
             document.getElementById('response-container').style.display = 'none'; // KI-Antwort-Container verstecken
-            // Keine automatische toggleSections() hier, da es vom Confirm-Button ausgelöst wird
         }
 
+        // Alle Sektionen, die nach der Initialauswahl erscheinen sollen
         const allActionSections = [
-            commonExpertDescription,
-            commonHr,
             brainstormingSection,
             existingFormatSection,
             newDevelopmentSection,
             pitchPaperSection,
             submitButton,
-            resetButton // Den Reset-Button auch hier verstecken
+            resetButton
         ];
 
-        function hideAllSections() {
+        // Funktion zum Verstecken aller dynamischen Sektionen und des Bestätigungsbuttons
+        function hideAllDynamicSections() {
             allActionSections.forEach(section => section.classList.add('hidden-section'));
-            // Auch den Confirm-Button verstecken, wenn keine Auswahl getroffen ist
             confirmSelectionButton.classList.add('hidden-section');
+            // Die Rollenbeschreibung und die dazugehörige Linie bleiben dauerhaft versteckt
+            commonExpertDescription.classList.add('hidden-section');
+            commonHr.classList.add('hidden-section');
         }
 
+        // Funktion zum Anzeigen des Bestätigungsbuttons, sobald eine Option gewählt ist
         function showConfirmButton() {
             const selectedAction = document.querySelector('input[name="action_type"]:checked');
             if (selectedAction) {
@@ -375,20 +368,21 @@
             }
         }
 
+        // Funktion, die ausgelöst wird, wenn der "Auswahl bestätigen & Weiter" Button geklickt wird
         function handleConfirmSelection() {
-            hideAllSections(); // Erst alles verstecken
+            hideAllDynamicSections(); // Zuerst alles verstecken, außer der initialen Auswahlbox
+            document.getElementById('response-container').style.display = 'none'; // KI-Antwort verstecken
+
             const selectedAction = document.querySelector('input[name="action_type"]:checked');
 
             if (selectedAction) {
-                commonExpertDescription.classList.remove('hidden-section');
-                commonHr.classList.remove('hidden-section');
-                submitButton.classList.remove('hidden-section');
-                document.getElementById('response-container').style.display = 'none';
+                // Keine 'common_expert_description' oder 'common_hr' mehr sichtbar machen
+                submitButton.classList.remove('hidden-section'); // Absenden-Button immer anzeigen
 
                 switch (selectedAction.value) {
                     case 'brainstorming':
                         brainstormingSection.classList.remove('hidden-section');
-                        resetButton.classList.remove('hidden-section');
+                        resetButton.classList.remove('hidden-section'); // Reset-Button anzeigen
                         resetChatHistory(); // Neuen Chat starten oder alten laden
                         displayChatHistory(loadChatHistory()); // Historie laden und anzeigen
                         break;
@@ -505,7 +499,7 @@
         // Initialisierung beim Laden der Seite
         document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('current_date').innerText = new Date().toLocaleDateString('de-DE', { year: 'numeric', month: 'long', day: 'numeric' });
-            hideAllSections(); // Alles initial ausblenden
+            hideAllDynamicSections(); // Alles initial ausblenden, inkl. Rollenbeschreibung
             // Stellt sicher, dass das Genre-Feld bei "Neuentwicklung" im Pitch Paper korrekt initialisiert wird
             document.getElementById('pp_genre_input').disabled = !document.getElementById('pp_new_development_checkbox').checked;
         });
