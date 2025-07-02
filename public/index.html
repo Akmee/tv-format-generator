@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TV-/Streaming-Formatentwicklung: Deep Prompt Template</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 900px;
+            margin: 20px auto;
+            padding: 20px;
+            background: #f4f4f4;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        h1, h2, h3 {
+            color: #0056b3;
+        }
+        hr {
+            border: 0;
+            height: 1px;
+            background: #ccc;
+            margin: 20px 0;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input[type="radio"], input[type="checkbox"] {
+            margin-right: 5px;
+        }
+        input[type="text"], textarea {
+            width: calc(100% - 22px);
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s ease;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .section {
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #e0e0e0;
+        }
+        .radio-group label {
+            display: inline-block;
+            margin-right: 20px;
+            font-weight: normal;
+        }
+        .current-date {
+            font-weight: bold;
+            color: #d9534f; /* Bootstrap's danger color */
+        }
+        #response-container {
+            margin-top: 30px;
+            padding: 20px;
+            background: #e9ecef;
+            border-radius: 8px;
+            display: none; /* Initial versteckt */
+        }
+        #response-container h3 {
+            color: #0056b3;
+        }
+        #response-text {
+            white-space: pre-wrap; /* Behält Formatierung bei */
+            word-wrap: break-word;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>🎬 TV-/Streaming-Formatentwicklung: Deep Prompt Template</h1>
+    <hr>
+
+    <form id="formatDevelopmentForm" action="/api/generate_prompt" method="POST">
+        <div class="section">
+            <h2>🧠 Einstieg: Was möchtest du tun?</h2>
+            <div class="radio-group">
+                <input type="radio" id="brainstorming" name="action_type" value="brainstorming" onclick="toggleBrainstorming(true)">
+                <label for="brainstorming"><strong>Brainstorming starten</strong> – Ich will zuerst locker Ideen entwickeln (Experten-Chat-Modus)</label><br>
+                <input type="radio" id="existing_format" name="action_type" value="existing_format" onclick="toggleBrainstorming(false)">
+                <label for="existing_format"><strong>Weiterentwicklung eines bestehenden Formats</strong></label><br>
+                <input type="radio" id="new_development" name="action_type" value="new_development" onclick="toggleBrainstorming(false)">
+                <label for="new_development"><strong>Neuentwicklung in einem bestimmten Genre:</strong></label>
+                <input type="text" id="genre_input" name="genre_input" placeholder="Genre eingeben" disabled>
+            </div>
+        </div>
+
+        <hr>
+
+        <div class="section">
+            <h2>👤 Rollenbeschreibung (Expertenmodus aktiv)</h2>
+            <p>Du bist ein erfahrener Experte der deutschsprachigen TV- und Streaminglandschaft mit 30 Jahren Berufspraxis.
+            Du kennst alle Phasen von der Ideenentwicklung über Produktion, Postproduktion bis zur Platzierung auf Sender- oder Streamingebene.
+            Du erkennst Marktchancen früh, entwickelst innovative Formate und denkst plattformübergreifend.
+            Deine Kernzielgruppe ist 15–49 Jahre, du denkst aber grundsätzlich breit und international mit.
+            Du arbeitest schnell, strukturiert und zielgerichtet – wie ein Produzent, der heute verkaufen muss.</p>
+
+            <p><strong>WICHTIG:</strong> Du arbeitest <strong>tagesaktuell</strong>. Das heutige Datum ist: <span class="current-date" id="current_date"></span>.</p>
+            <p>Verwende es für alle Recherchen, Marktanalysen, Streaming-Trends und zeitliche Relevanzprüfungen.</p>
+        </div>
+
+        <hr>
+
+        <div id="brainstorming_section" class="section" style="display:none;">
+            <h2>💬 Wenn Brainstorming aktiviert ist:</h2>
+            <h3>🎯 Ziel des Brainstormings:</h3>
+            <ul>
+                <li>Gemeinsam neue Formatansätze finden</li>
+                <li>Mit gezielten Fragen und strukturiertem Nachfragen durch den Experten</li>
+                <li>Auf Basis von Markt, Trends, Zielgruppen und deiner Intuition</li>
+            </ul>
+
+            <h3>📋 Ablauf des Experten-Dialogs:</h3>
+            <p>Diese Fragen würden im "Experten-Chat-Modus" dynamisch gestellt und beantwortet. Im Formular bieten wir Input-Felder an, die als Basis für den Start des Dialogs dienen könnten.</p>
+
+            <label for="genre_feeling">1. In welchem Genre oder Themenfeld hast du gerade ein gutes Gefühl oder eine Idee? (z. B. Reality, Doku, Crime, Comedy, Social Media, etc.)</label>
+            <input type="text" id="genre_feeling" name="brainstorming_genre_feeling" placeholder="Dein Genre/Themenfeld">
+
+            <label for="market_observation">2. Was beobachtest du gerade auf dem Markt, das entweder fehlt oder besonders gut läuft?</label>
+            <textarea id="market_observation" name="brainstorming_market_observation" placeholder="Deine Marktbeobachtungen"></textarea>
+
+            <label for="target_group_emotion">3. Welche Zielgruppe willst du konkret erreichen – und mit welcher Emotion?</label>
+            <input type="text" id="target_group_emotion" name="brainstorming_target_group_emotion" placeholder="Zielgruppe und Emotion">
+
+            <label for="trailer_tone">4. Stell dir den Trailer vor: Wie fühlt er sich an? Schnell? Emotional? Laut? Leise?</label>
+            <input type="text" id="trailer_tone" name="brainstorming_trailer_tone" placeholder="Ton & Look des Trailers">
+
+            <label for="format_pitch">5. Wenn du es in einem Satz pitchen müsstest – was ist das Besondere an deinem Format?</label>
+            <textarea id="format_pitch" name="brainstorming_format_pitch" placeholder="Dein Format-Pitch"></textarea>
+
+            <label for="platform_suitability">6. Für welche Plattform wäre das geeignet? Würde es linear funktionieren, oder rein digital?</label>
+            <input type="text" id="platform_suitability" name="brainstorming_platform_suitability" placeholder="Geeignete Plattform(en)">
+        </div>
+
+        <hr>
+
+        <div class="section">
+            <h2>📄 Pitch Paper Template: TV-/Streaming-Format</h2>
+            <div class="section-subsection">
+                <h3>🔹 1. Auftragsklärung</h3>
+                <input type="checkbox" id="pp_existing_format" name="pp_assignment_type" value="Weiterentwicklung eines bestehenden Formats">
+                <label for="pp_existing_format">Weiterentwicklung eines bestehenden Formats</label><br>
+                <input type="checkbox" id="pp_new_development" name="pp_assignment_type" value="Neuentwicklung basierend auf Genre">
+                <label for="pp_new_development">Neuentwicklung basierend auf Genre:</label>
+                <input type="text" id="pp_genre_input" name="pp_genre_input" placeholder="Genre eingeben">
+            </div>
+
+            <div class="section-subsection">
+                <h3>🔹 2. Marktanalyse (2020–2025)</h3>
+                <h4>Erfolgreiche Formate & Trends</h4>
+                <label for="top_formats">Top 5 Formate (linear & Streaming)</label>
+                <textarea id="top_formats" name="market_top_formats"></textarea>
+                <label for="market_shares">Marktanteile / Quoten</label>
+                <textarea id="market_shares" name="market_shares"></textarea>
+                <label for="genre_trends">Genre- & Formattrends</label>
+                <textarea id="genre_trends" name="market_genre_trends"></textarea>
+                <label for="platform_trends">Plattformtrends</label>
+                <textarea id="platform_trends" name="market_platform_trends"></textarea>
+                <label for="target_group_dynamics">Zielgruppendynamiken</label>
+                <textarea id="target_group_dynamics" name="market_target_group_dynamics"></textarea>
+
+                <h4>Gesellschaftliche & technologische Einflüsse</h4>
+                <label for="influence_factors">Einflussfaktoren (KI, Klimawandel, Social Media, etc.)</label>
+                <textarea id="influence_factors" name="societal_influence_factors"></textarea>
+                <label for="new_viewing_habits">Neue Sehgewohnheiten</label>
+                <textarea id="new_viewing_habits" name="new_viewing_habits"></textarea>
+            </div>
+
+            <div class="section-subsection">
+                <h3>🔹 3. Formatentwicklung</h3>
+                <label for="title_claim">Titel & Claim</label>
+                <input type="text" id="title_claim" name="format_title_claim">
+                <label for="genre_setting_target">Genre, Setting, Zielgruppe</label>
+                <input type="text" id="genre_setting_target" name="format_genre_setting_target">
+                <label for="tone_visual">Tonalität & visuelles Konzept</label>
+                <textarea id="tone_visual" name="format_tone_visual"></textarea>
+                <label for="usp_zeitgeist">USP & Zeitgeist</label>
+                <textarea id="usp_zeitgeist" name="format_usp_zeitgeist"></textarea>
+                <label for="season_episode_structure">Staffelstruktur oder Episodenaufbau</label>
+                <textarea id="season_episode_structure" name="format_season_episode_structure"></textarea>
+            </div>
+
+            <div class="section-subsection">
+                <h3>🔹 4. Plattform- & Vermarktungsstrategie</h3>
+                <label for="primary_platform">Primäre Plattform</label>
+                <input type="text" id="primary_platform" name="platform_primary">
+                <label for="linear_utilization">Lineare Auswertung</label>
+                <input type="text" id="linear_utilization" name="platform_linear">
+                <label for="digital_extension">Digitale Verlängerung</label>
+                <input type="text" id="digital_extension" name="platform_digital">
+                <label for="international_scalability">Internationale Skalierbarkeit</label>
+                <input type="text" id="international_scalability" name="platform_international">
+                <label for="sponsoring_options">Sponsoring- / Werbeoptionen</label>
+                <textarea id="sponsoring_options" name="platform_sponsoring"></textarea>
+            </div>
+
+            <div class="section-subsection">
+                <h3>🔹 5. Bewertung & Ausblick</h3>
+                <label for="success_chances">Erfolgschancen</label>
+                <textarea id="success_chances" name="evaluation_success"></textarea>
+                <label for="risks_solutions">Risiken & Lösungen</label>
+                <textarea id="risks_solutions" name="evaluation_risks"></textarea>
+                <label for="pilot_notes">Hinweise zur Pilotphase</label>
+                <textarea id="pilot_notes" name="evaluation_pilot"></textarea>
+            </div>
+
+            <div class="section-subsection">
+                <h3>🔹 6. Revision & Selbstkontrolle</h3>
+                <input type="checkbox" id="logic_checked" name="revision_logic" value="true">
+                <label for="logic_checked">Logik geprüft</label><br>
+                <input type="checkbox" id="data_trends_proven" name="revision_data_trends" value="true">
+                <label for="data_trends_proven">Zahlen & Trends belegt</label><br>
+                <input type="checkbox" id="formatting_clear" name="revision_formatting" value="true">
+                <label for="formatting_clear">Formatierung klar</label><br>
+                <input type="checkbox" id="sections_complete" name="revision_sections_complete" value="true">
+                <label for="sections_complete">Alle Abschnitte vollständig</label>
+            </div>
+        </div>
+
+        <button type="submit">Format analysieren / Prompt generieren</button>
+    </form>
+
+    <div id="response-container">
+        <h3>KI-Antwort:</h3>
+        <p id="response-text"></p>
+    </div>
+
+    <script>
+        // Setzt das aktuelle Datum
+        document.getElementById('current_date').innerText = new Date().toLocaleDateString('de-DE', { year: 'numeric', month: 'long', day: 'numeric' });
+
+        // Funktion zum Aktivieren/Deaktivieren des Brainstorming-Abschnitts und des Genre-Inputs
+        function toggleBrainstorming(isBrainstorming) {
+            const brainstormingSection = document.getElementById('brainstorming_section');
+            const genreInput = document.getElementById('genre_input');
+            const newDevelopmentRadio = document.getElementById('new_development');
+
+            if (isBrainstorming) {
+                brainstormingSection.style.display = 'block';
+                genreInput.disabled = true; // Genre-Feld deaktivieren, wenn Brainstorming aktiv
+                if (newDevelopmentRadio.checked) {
+                    newDevelopmentRadio.checked = false; // Andere Option deselektieren
+                }
+            } else {
+                brainstormingSection.style.display = 'none';
+                if (newDevelopmentRadio.checked) {
+                    genreInput.disabled = false; // Genre-Feld aktivieren, wenn Neuentwicklung gewählt
+                } else {
+                    genreInput.disabled = true;
+                    genreInput.value = ''; // Feld leeren, wenn nicht benötigt
+                }
+            }
+        }
+
+        // Event Listener für die Radio-Buttons zur Auswahl des Aktions-Typs
+        document.querySelectorAll('input[name="action_type"]').forEach(radio => {
+            radio.addEventListener('change', function() {
+                toggleBrainstorming(this.value === 'brainstorming');
+                // Wenn "Neuentwicklung in einem bestimmten Genre" gewählt wird, Genre-Feld aktivieren
+                document.getElementById('genre_input').disabled = (this.value !== 'new_development');
+            });
+        });
+
+        // Event Listener für die Checkboxen im Pitch Paper für Auftragsklärung
+        document.querySelectorAll('input[name="pp_assignment_type"]').forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                const ppGenreInput = document.getElementById('pp_genre_input');
+                const ppNewDevelopmentCheckbox = document.getElementById('pp_new_development');
+                if (ppNewDevelopmentCheckbox.checked) {
+                    ppGenreInput.disabled = false;
+                } else {
+                    ppGenreInput.disabled = true;
+                    ppGenreInput.value = ''; // Feld leeren, wenn nicht benötigt
+                }
+            });
+        });
+
+        // Handle Form Submission
+        document.getElementById('formatDevelopmentForm').addEventListener('submit', async function(event) {
+            event.preventDefault(); // Verhindert das Standard-Formular-Senden
+
+            const form = event.target;
+            const formData = new FormData(form);
+            const responseContainer = document.getElementById('response-container');
+            const responseText = document.getElementById('response-text');
+            responseText.innerText = 'Generiere Antwort... Bitte warten.';
+            responseContainer.style.display = 'block'; // Antwort-Container anzeigen
+
+            try {
+                const response = await fetch(form.action, {
+                    method: form.method,
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const result = await response.json();
+
+                if (result.success) {
+                    responseText.innerText = result.response;
+                } else {
+                    responseText.innerText = `Fehler: ${result.error}`;
+                }
+            } catch (error) {
+                responseText.innerText = `Ein unerwarteter Fehler ist aufgetreten: ${error.message}`;
+            }
+        });
+
+
+        // Initialisierung beim Laden der Seite
+        document.addEventListener('DOMContentLoaded', function() {
+            // Setzt das korrekte Datum beim Laden
+            document.getElementById('current_date').innerText = new Date().toLocaleDateString('de-DE', { year: 'numeric', month: 'long', day: 'numeric' });
+            // Stellt sicher, dass der Brainstorming-Abschnitt beim Laden der Seite initial korrekt ausgeblendet ist
+            toggleBrainstorming(document.getElementById('brainstorming').checked);
+            // Stellt sicher, dass das Genre-Feld bei "Neuentwicklung" korrekt initialisiert wird
+            document.getElementById('genre_input').disabled = !document.getElementById('new_development').checked;
+            document.getElementById('pp_genre_input').disabled = !document.getElementById('pp_new_development').checked;
+        });
+
+    </script>
+
+</body>
+</html>
