@@ -88,6 +88,34 @@
             white-space: pre-wrap; /* Behält Formatierung bei */
             word-wrap: break-word;
         }
+        .hidden-section {
+            display: none;
+        }
+        .chat-history {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 5px;
+            max-height: 200px; /* Begrenzte Höhe für Scrollbarkeit */
+            overflow-y: auto; /* Scrollbalken, wenn nötig */
+            font-size: 0.9em;
+        }
+        .chat-history p {
+            margin: 5px 0;
+            line-height: 1.4;
+        }
+        .chat-history .user-message {
+            font-weight: bold;
+            color: #28a745; /* Grün für Nutzer */
+        }
+        .chat-history .ai-message {
+            color: #007bff; /* Blau für KI */
+        }
+        .chat-history hr {
+            border-top: 1px dashed #ced4da;
+            margin: 10px 0;
+        }
     </style>
 </head>
 <body>
@@ -99,19 +127,20 @@
         <div class="section">
             <h2>🧠 Einstieg: Was möchtest du tun?</h2>
             <div class="radio-group">
-                <input type="radio" id="brainstorming" name="action_type" value="brainstorming" onclick="toggleBrainstorming(true)">
-                <label for="brainstorming"><strong>Brainstorming starten</strong> – Ich will zuerst locker Ideen entwickeln (Experten-Chat-Modus)</label><br>
-                <input type="radio" id="existing_format" name="action_type" value="existing_format" onclick="toggleBrainstorming(false)">
-                <label for="existing_format"><strong>Weiterentwicklung eines bestehenden Formats</strong></label><br>
-                <input type="radio" id="new_development" name="action_type" value="new_development" onclick="toggleBrainstorming(false)">
-                <label for="new_development"><strong>Neuentwicklung in einem bestimmten Genre:</strong></label>
-                <input type="text" id="genre_input" name="genre_input" placeholder="Genre eingeben" disabled>
+                <input type="radio" id="action_brainstorming" name="action_type" value="brainstorming">
+                <label for="action_brainstorming"><strong>Brainstorming starten</strong> – Ich will zuerst locker Ideen entwickeln (Experten-Chat-Modus)</label><br>
+                <input type="radio" id="action_existing_format" name="action_type" value="existing_format">
+                <label for="action_existing_format"><strong>Weiterentwicklung eines bestehenden Formats</strong></label><br>
+                <input type="radio" id="action_new_development" name="action_type" value="new_development">
+                <label for="action_new_development"><strong>Neuentwicklung in einem bestimmten Genre</strong></label><br>
+                <input type="radio" id="action_pitch_paper" name="action_type" value="pitch_paper">
+                <label for="action_pitch_paper"><strong>Direkt ein Pitch Paper erstellen</strong> (Alle Details manuell eingeben)</label>
             </div>
         </div>
 
         <hr>
 
-        <div class="section">
+        <div id="common_expert_description" class="section hidden-section">
             <h2>👤 Rollenbeschreibung (Expertenmodus aktiv)</h2>
             <p>Du bist ein erfahrener Experte der deutschsprachigen TV- und Streaminglandschaft mit 30 Jahren Berufspraxis.
             Du kennst alle Phasen von der Ideenentwicklung über Produktion, Postproduktion bis zur Platzierung auf Sender- oder Streamingebene.
@@ -121,51 +150,57 @@
 
             <p><strong>WICHTIG:</strong> Du arbeitest <strong>tagesaktuell</strong>. Das heutige Datum ist: <span class="current-date" id="current_date"></span>.</p>
             <p>Verwende es für alle Recherchen, Marktanalysen, Streaming-Trends und zeitliche Relevanzprüfungen.</p>
+            <p><strong>Hinweis:</strong> Für die Generierung wird das Modell <strong>GPT-3.5-Turbo</strong> (entspricht "o3 mini") verwendet.</p>
         </div>
 
-        <hr>
+        <hr id="common_hr" class="hidden-section">
 
-        <div id="brainstorming_section" class="section" style="display:none;">
-            <h2>💬 Wenn Brainstorming aktiviert ist:</h2>
+        <div id="brainstorming_section" class="section hidden-section">
+            <h2>💬 Brainstorming-Modus: Locker Ideen entwickeln</h2>
             <h3>🎯 Ziel des Brainstormings:</h3>
             <ul>
                 <li>Gemeinsam neue Formatansätze finden</li>
                 <li>Mit gezielten Fragen und strukturiertem Nachfragen durch den Experten</li>
-                <li>Auf Basis von Markt, Trends, Zielgruppen und deiner Intuition</li>
+                <li>Es muss nicht zwangsläufig ein vollständiges Format am Ende entstehen. Wir können auch ergebnislos enden.</li>
             </ul>
 
-            <h3>📋 Ablauf des Experten-Dialogs:</h3>
-            <p>Diese Fragen würden im "Experten-Chat-Modus" dynamisch gestellt und beantwortet. Im Formular bieten wir Input-Felder an, die als Basis für den Start des Dialogs dienen könnten.</p>
+            <div id="brainstorming_chat_history" class="chat-history hidden-section">
+                <h4>Bisheriger Chat-Verlauf:</h4>
+                </div>
 
-            <label for="genre_feeling">1. In welchem Genre oder Themenfeld hast du gerade ein gutes Gefühl oder eine Idee? (z. B. Reality, Doku, Crime, Comedy, Social Media, etc.)</label>
-            <input type="text" id="genre_feeling" name="brainstorming_genre_feeling" placeholder="Dein Genre/Themenfeld">
-
-            <label for="market_observation">2. Was beobachtest du gerade auf dem Markt, das entweder fehlt oder besonders gut läuft?</label>
-            <textarea id="market_observation" name="brainstorming_market_observation" placeholder="Deine Marktbeobachtungen"></textarea>
-
-            <label for="target_group_emotion">3. Welche Zielgruppe willst du konkret erreichen – und mit welcher Emotion?</label>
-            <input type="text" id="target_group_emotion" name="brainstorming_target_group_emotion" placeholder="Zielgruppe und Emotion">
-
-            <label for="trailer_tone">4. Stell dir den Trailer vor: Wie fühlt er sich an? Schnell? Emotional? Laut? Leise?</label>
-            <input type="text" id="trailer_tone" name="brainstorming_trailer_tone" placeholder="Ton & Look des Trailers">
-
-            <label for="format_pitch">5. Wenn du es in einem Satz pitchen müsstest – was ist das Besondere an deinem Format?</label>
-            <textarea id="format_pitch" name="brainstorming_format_pitch" placeholder="Dein Format-Pitch"></textarea>
-
-            <label for="platform_suitability">6. Für welche Plattform wäre das geeignet? Würde es linear funktionieren, oder rein digital?</label>
-            <input type="text" id="platform_suitability" name="brainstorming_platform_suitability" placeholder="Geeignete Plattform(en)">
+            <label for="brainstorming_input">Deine aktuelle Eingabe für den Experten:</label>
+            <textarea id="brainstorming_input" name="brainstorming_input" placeholder="Z.B. 'Ich habe eine vage Idee für eine Reality-Show im Bereich Nachhaltigkeit' oder 'Lass uns über neue Doku-Formate für TikTok nachdenken.'"></textarea>
+            
+            <input type="hidden" name="chat_history_json" id="chat_history_json">
         </div>
 
-        <hr>
+        <div id="existing_format_section" class="section hidden-section">
+            <h2>🔄 Weiterentwicklung eines bestehenden Formats</h2>
+            <label for="existing_format_name">Name des bestehenden Formats:</label>
+            <input type="text" id="existing_format_name" name="existing_format_name" placeholder="Z.B. 'Der große Backwettbewerb'">
 
-        <div class="section">
+            <label for="existing_format_notes">Anmerkungen zur Weiterentwicklung (Was soll verbessert/geändert werden?)</label>
+            <textarea id="existing_format_notes" name="existing_format_notes" placeholder="Z.B. 'Soll jünger werden', 'Mehr Interaktion mit Social Media', 'Neue Location', 'Fokus auf bestimmte Zielgruppe'"></textarea>
+        </div>
+
+        <div id="new_development_section" class="section hidden-section">
+            <h2>🆕 Neuentwicklung in einem bestimmten Genre</h2>
+            <label for="new_development_genre">In welchem Genre möchtest du ein neues Format entwickeln?</label>
+            <input type="text" id="new_development_genre" name="new_development_genre" placeholder="Z.B. 'Science-Fiction-Doku', 'True Crime Podcast', 'Young Adult Drama'">
+
+            <label for="new_development_initial_ideas">Hast du schon erste Ideen oder Stichpunkte, die wir vertiefen sollen?</label>
+            <textarea id="new_development_initial_ideas" name="new_development_initial_ideas" placeholder="Z.B. 'Es soll um Künstliche Intelligenz gehen', 'Protagonisten sind Teenager', 'Soll eine Mystery-Komponente haben'"></textarea>
+        </div>
+
+        <div id="pitch_paper_section" class="section hidden-section">
             <h2>📄 Pitch Paper Template: TV-/Streaming-Format</h2>
+            <p>Bitte fülle alle relevanten Felder aus, um ein vollständiges Pitch Paper zu generieren.</p>
             <div class="section-subsection">
                 <h3>🔹 1. Auftragsklärung</h3>
-                <input type="checkbox" id="pp_existing_format" name="pp_assignment_type" value="Weiterentwicklung eines bestehenden Formats">
-                <label for="pp_existing_format">Weiterentwicklung eines bestehenden Formats</label><br>
-                <input type="checkbox" id="pp_new_development" name="pp_assignment_type" value="Neuentwicklung basierend auf Genre">
-                <label for="pp_new_development">Neuentwicklung basierend auf Genre:</label>
+                <input type="checkbox" id="pp_existing_format_checkbox" name="pp_assignment_type" value="Weiterentwicklung eines bestehenden Formats">
+                <label for="pp_existing_format_checkbox">Weiterentwicklung eines bestehenden Formats</label><br>
+                <input type="checkbox" id="pp_new_development_checkbox" name="pp_assignment_type" value="Neuentwicklung basierend auf Genre">
+                <label for="pp_new_development_checkbox">Neuentwicklung basierend auf Genre:</label>
                 <input type="text" id="pp_genre_input" name="pp_genre_input" placeholder="Genre eingeben">
             </div>
 
@@ -241,7 +276,8 @@
             </div>
         </div>
 
-        <button type="submit">Format analysieren / Prompt generieren</button>
+        <button type="submit" id="submit_button" class="hidden-section">Absenden</button>
+        <button type="button" id="reset_chat_button" class="hidden-section" style="background-color: #dc3545; margin-top: 10px;">Chat zurücksetzen</button>
     </form>
 
     <div id="response-container">
@@ -253,51 +289,114 @@
         // Setzt das aktuelle Datum
         document.getElementById('current_date').innerText = new Date().toLocaleDateString('de-DE', { year: 'numeric', month: 'long', day: 'numeric' });
 
-        // Funktion zum Aktivieren/Deaktivieren des Brainstorming-Abschnitts und des Genre-Inputs
-        function toggleBrainstorming(isBrainstorming) {
-            const brainstormingSection = document.getElementById('brainstorming_section');
-            const genreInput = document.getElementById('genre_input');
-            const newDevelopmentRadio = document.getElementById('new_development');
+        const commonExpertDescription = document.getElementById('common_expert_description');
+        const commonHr = document.getElementById('common_hr');
+        const brainstormingSection = document.getElementById('brainstorming_section');
+        const existingFormatSection = document.getElementById('existing_format_section');
+        const newDevelopmentSection = document.getElementById('new_development_section');
+        const pitchPaperSection = document.getElementById('pitch_paper_section');
+        const submitButton = document.getElementById('submit_button');
+        const resetButton = document.getElementById('reset_chat_button'); // Neuer Reset-Button
 
-            if (isBrainstorming) {
-                brainstormingSection.style.display = 'block';
-                genreInput.disabled = true; // Genre-Feld deaktivieren, wenn Brainstorming aktiv
-                if (newDevelopmentRadio.checked) {
-                    newDevelopmentRadio.checked = false; // Andere Option deselektieren
-                }
-            } else {
-                brainstormingSection.style.display = 'none';
-                if (newDevelopmentRadio.checked) {
-                    genreInput.disabled = false; // Genre-Feld aktivieren, wenn Neuentwicklung gewählt
-                } else {
-                    genreInput.disabled = true;
-                    genreInput.value = ''; // Feld leeren, wenn nicht benötigt
-                }
+        const brainstormingInput = document.getElementById('brainstorming_input');
+        const chatHistoryContainer = document.getElementById('brainstorming_chat_history');
+        const chatHistoryJsonInput = document.getElementById('chat_history_json');
+
+        const LOCAL_STORAGE_KEY = 'openai_chat_history'; // Key für LocalStorage
+
+        // Hilfsfunktion: Chat-Verlauf aus LocalStorage laden
+        function loadChatHistory() {
+            try {
+                const history = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY));
+                return Array.isArray(history) ? history : [];
+            } catch (e) {
+                console.error("Fehler beim Laden des Chat-Verlaufs aus LocalStorage:", e);
+                return [];
             }
         }
 
-        // Event Listener für die Radio-Buttons zur Auswahl des Aktions-Typs
-        document.querySelectorAll('input[name="action_type"]').forEach(radio => {
-            radio.addEventListener('change', function() {
-                toggleBrainstorming(this.value === 'brainstorming');
-                // Wenn "Neuentwicklung in einem bestimmten Genre" gewählt wird, Genre-Feld aktivieren
-                document.getElementById('genre_input').disabled = (this.value !== 'new_development');
-            });
-        });
+        // Hilfsfunktion: Chat-Verlauf in LocalStorage speichern
+        function saveChatHistory(history) {
+            localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(history));
+        }
 
-        // Event Listener für die Checkboxen im Pitch Paper für Auftragsklärung
-        document.querySelectorAll('input[name="pp_assignment_type"]').forEach(checkbox => {
-            checkbox.addEventListener('change', function() {
-                const ppGenreInput = document.getElementById('pp_genre_input');
-                const ppNewDevelopmentCheckbox = document.getElementById('pp_new_development');
-                if (ppNewDevelopmentCheckbox.checked) {
-                    ppGenreInput.disabled = false;
-                } else {
-                    ppGenreInput.disabled = true;
-                    ppGenreInput.value = ''; // Feld leeren, wenn nicht benötigt
-                }
+        // Hilfsfunktion: Chat-Verlauf im UI anzeigen
+        function displayChatHistory(history) {
+            chatHistoryContainer.innerHTML = '<h4>Bisheriger Chat-Verlauf:</h4>';
+            if (history.length === 0) {
+                chatHistoryContainer.classList.add('hidden-section');
+                return;
+            }
+            chatHistoryContainer.classList.remove('hidden-section');
+            history.forEach(entry => {
+                const p = document.createElement('p');
+                p.classList.add(entry.role === 'user' ? 'user-message' : 'ai-message');
+                p.innerText = `${entry.role === 'user' ? 'Du' : 'Experte'}: ${entry.content}`;
+                chatHistoryContainer.appendChild(p);
             });
-        });
+            chatHistoryContainer.scrollTop = chatHistoryContainer.scrollHeight; // Zum Ende scrollen
+        }
+
+        // Hilfsfunktion: Chat-Verlauf zurücksetzen
+        function resetChatHistory() {
+            localStorage.removeItem(LOCAL_STORAGE_KEY);
+            displayChatHistory([]); // UI aktualisieren
+            if (brainstormingInput) brainstormingInput.value = ''; // Inputfeld leeren
+            document.getElementById('response-text').innerText = ''; // KI-Antwort leeren
+            document.getElementById('response-container').style.display = 'none'; // KI-Antwort-Container verstecken
+            toggleSections(); // Abschnitte neu laden (für initialen Expertentext)
+        }
+
+        const allActionSections = [
+            brainstormingSection,
+            existingFormatSection,
+            newDevelopmentSection,
+            pitchPaperSection
+        ];
+
+        function hideAllActionSections() {
+            allActionSections.forEach(section => section.classList.add('hidden-section'));
+            commonExpertDescription.classList.add('hidden-section');
+            commonHr.classList.add('hidden-section');
+            submitButton.classList.add('hidden-section');
+            resetButton.classList.add('hidden-section'); // Reset-Button auch verstecken
+            chatHistoryContainer.classList.add('hidden-section'); // Chat-Verlauf verstecken
+        }
+
+        function toggleSections() {
+            hideAllActionSections(); // Alle ausblenden
+            const selectedAction = document.querySelector('input[name="action_type"]:checked');
+
+            // Setzt das aktuelle Datum jedes Mal neu, wenn die Sektionen gewechselt werden
+            document.getElementById('current_date').innerText = new Date().toLocaleDateString('de-DE', { year: 'numeric', month: 'long', day: 'numeric' });
+
+            if (selectedAction) {
+                commonExpertDescription.classList.remove('hidden-section');
+                commonHr.classList.remove('hidden-section');
+                submitButton.classList.remove('hidden-section');
+                document.getElementById('response-container').style.display = 'none'; // KI-Antwort verstecken beim Wechsel
+
+                switch (selectedAction.value) {
+                    case 'brainstorming':
+                        brainstormingSection.classList.remove('hidden-section');
+                        resetButton.classList.remove('hidden-section'); // Reset-Button anzeigen
+                        displayChatHistory(loadChatHistory()); // Chat-Historie laden und anzeigen
+                        break;
+                    case 'existing_format':
+                        existingFormatSection.classList.remove('hidden-section');
+                        resetChatHistory(); // Chat-Historie leeren, da anderer Modus
+                        break;
+                    case 'new_development':
+                        newDevelopmentSection.classList.remove('hidden-section');
+                        resetChatHistory(); // Chat-Historie leeren
+                        break;
+                    case 'pitch_paper':
+                        pitchPaperSection.classList.remove('hidden-section');
+                        resetChatHistory(); // Chat-Historie leeren
+                        break;
+                }
+            }
+        }
 
         // Handle Form Submission
         document.getElementById('formatDevelopmentForm').addEventListener('submit', async function(event) {
@@ -309,6 +408,31 @@
             const responseText = document.getElementById('response-text');
             responseText.innerText = 'Generiere Antwort... Bitte warten.';
             responseContainer.style.display = 'block'; // Antwort-Container anzeigen
+
+            const selectedAction = document.querySelector('input[name="action_type"]:checked');
+            let currentChatHistory = [];
+            let userMessage = '';
+
+            // Nur im Brainstorming-Modus den Chat-Verlauf handhaben
+            if (selectedAction && selectedAction.value === 'brainstorming') {
+                currentChatHistory = loadChatHistory();
+                userMessage = brainstormingInput.value;
+
+                // Füge die aktuelle Nutzereingabe zur Historie hinzu
+                if (userMessage.trim() !== '') {
+                    currentChatHistory.push({ role: 'user', content: userMessage.trim() });
+                }
+                
+                // Setze das versteckte Feld für den Backend-Versand
+                chatHistoryJsonInput.value = JSON.stringify(currentChatHistory);
+                
+                // Leere das Inputfeld nach dem Senden
+                brainstormingInput.value = '';
+            } else {
+                // Bei anderen Modi sicherstellen, dass die Historie leer ist
+                chatHistoryJsonInput.value = JSON.stringify([]);
+            }
+
 
             try {
                 const response = await fetch(form.action, {
@@ -324,6 +448,13 @@
 
                 if (result.success) {
                     responseText.innerText = result.response;
+
+                    // Wenn im Brainstorming-Modus, KI-Antwort zur Historie hinzufügen und speichern
+                    if (selectedAction && selectedAction.value === 'brainstorming') {
+                        currentChatHistory.push({ role: 'assistant', content: result.response });
+                        saveChatHistory(currentChatHistory);
+                        displayChatHistory(currentChatHistory); // UI aktualisieren
+                    }
                 } else {
                     responseText.innerText = `Fehler: ${result.error}`;
                 }
@@ -332,16 +463,19 @@
             }
         });
 
+        // Event Listener für den Reset-Button
+        if (resetButton) {
+            resetButton.addEventListener('click', resetChatHistory);
+        }
 
         // Initialisierung beim Laden der Seite
         document.addEventListener('DOMContentLoaded', function() {
             // Setzt das korrekte Datum beim Laden
             document.getElementById('current_date').innerText = new Date().toLocaleDateString('de-DE', { year: 'numeric', month: 'long', day: 'numeric' });
-            // Stellt sicher, dass der Brainstorming-Abschnitt beim Laden der Seite initial korrekt ausgeblendet ist
-            toggleBrainstorming(document.getElementById('brainstorming').checked);
-            // Stellt sicher, dass das Genre-Feld bei "Neuentwicklung" korrekt initialisiert wird
-            document.getElementById('genre_input').disabled = !document.getElementById('new_development').checked;
-            document.getElementById('pp_genre_input').disabled = !document.getElementById('pp_new_development').checked;
+            // Initial alle Aktionssektionen ausblenden
+            hideAllActionSections();
+            // Stellt sicher, dass das Genre-Feld bei "Neuentwicklung" im Pitch Paper korrekt initialisiert wird
+            document.getElementById('pp_genre_input').disabled = !document.getElementById('pp_new_development_checkbox').checked;
         });
 
     </script>
