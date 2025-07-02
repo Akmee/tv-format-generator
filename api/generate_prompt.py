@@ -6,10 +6,14 @@ from urllib.parse import parse_qs
 from openai import OpenAI
 
 # Initialisiere den OpenAI-Client
+# Stellen Sie sicher, dass OPENAI_API_KEY als Umgebungsvariable gesetzt ist.
+# In Vercel konfigurieren Sie dies unter Project Settings -> Environment Variables.
 client = OpenAI()
 
-# Nutze das GPT-3.5-Turbo Modell als 'o3 mini' Äquivalent, da 'o3 mini' kein offizieller Name ist.
-OPENAI_MODEL = "gpt-3.5-turbo" # Kannst du auch auf "gpt-4o-mini" ändern, wenn es verfügbar ist
+# Nutze das bevorzugte Modell
+# 'gpt-4o-mini' ist eine gute Wahl für Kosten-Effizienz und Performance.
+# Du könntest auch 'gpt-3.5-turbo' verwenden, falls bevorzugt.
+OPENAI_MODEL = "gpt-4o-mini" 
 
 class handler(BaseHTTPRequestHandler):
     def do_POST(self):
@@ -18,34 +22,40 @@ class handler(BaseHTTPRequestHandler):
 
         # FormData verarbeiten
         form_data = parse_qs(post_data.decode('utf-8'), keep_blank_values=True)
-        # Konvertiere Listen zu einzelnen Werten (FormData gibt Listen zurück)
+        # Konvertiere Listen zu einzelnen Werten (FormData gibt Listen zurück),
+        # außer bei Feldern, die explizit Listen sein sollen (wie 'pp_assignment_type').
         data = {k: v[0] if len(v) == 1 else v for k, v in form_data.items()}
 
         action_type = data.get('action_type', '')
+        # Nutze das aktuelle Datum in deutscher Formatierung
         current_date = datetime.date.today().strftime('%d.%m.%Y')
 
-        # Die Liste der Nachrichten, die an die OpenAI API gesendet werden
-        messages = []
+        messages = [] # Die Liste der Nachrichten, die an die OpenAI API gesendet werden
 
-        # Allgemeine Systemnachricht, die bei jedem Modus am Anfang steht
+        # Allgemeine Basissystemnachricht für alle Modi
         base_system_content = (
             "Du bist ein erfahrener Experte der deutschsprachigen TV- und Streaminglandschaft mit 30 Jahren Berufspraxis. "
             "Du erkennst Marktchancen früh, entwickelst innovative Formate und denkst plattformübergreifend. "
             "Deine Kernzielgruppe ist 15–49 Jahre, du denkst aber grundsätzlich breit und international mit. "
             "Du arbeitest schnell, strukturiert und zielgerichtet – wie ein Produzent, der heute verkaufen muss und dabei schon am Morgen denkt.\n\n"
             f"WICHTIG: Du arbeitest tagesaktuell. Das heutige Datum ist: {current_date}. "
-            f"Verwende das Modell GPT-3.5-Turbo (o3 mini)."
+            f"Verwende das Modell {OPENAI_MODEL}."
         )
 
-        user_message_content = ""
+        # Die `user_message_content` Variable wird nur für die Modi außerhalb von 'brainstorming' genutzt,
+        # da der Brainstorming-Modus das `messages`-Array direkt befüllt.
+        user_message_content = "" 
 
         if action_type == 'brainstorming':
-            # Spezifische Systemnachricht für den Sparring-Partner-Modus (Details)
+            # Spezifische Systemnachricht für den Sparring-Partner-Modus
             sparring_partner_system_content = (
-                base_system_content + "\n\n"
-                "Aktiviere den Sparring-Partner-Expertenmodus\n"
+                "DEINE AKTUELLE ROLLE IST EIN SPARRING-PARTNER-EXPERTENMODUS.\n"
                 "Du bist mein kreativer Sparring-Partner für TV- und Streaming-Formate mit 30 Jahren Erfahrung in der deutschsprachigen Medienwelt. "
-                "Du hast in der Vergangenheit schon mehrfach bewiesen, dass du ein gutes Gespür für Trends hast. Du bist gewohnt quer und in alle Richtungen zu denken, um auch ungewöhnliche Wege zu gehen.\n\n"
+                "Du kennst alle Phasen von der Ideenentwicklung über Produktion, Postproduktion bis zur Platzierung auf Sender- oder Streamingebene. "
+                "Du hast in der Vergangenheit schon mehrfach bewiesen, dass du ein gutes Gespür für Trends hast. Du bist gewohnt quer und in alle Richtungen zu denken, um auch ungewöhnliche Wege zu gehen. "
+                "Du erkennst Marktchancen früh, entwickelst innovative Formate und denkst plattformübergreifend. "
+                "Deine Kernzielgruppe ist 15–49 Jahre, du denkst aber grundsätzlich breit und international mit. "
+                "Du arbeitest schnell, strukturiert und zielgerichtet – wie ein Produzent, der heute verkaufen muss und dabei schon am Morgen denkt.\n\n"
                 "## Arbeitsweise\n"
                 "1. **Eröffnungsdialog**\n"
                 "   - Du beginnst mit: „Was wollen wir heute gemeinsam Verrücktes entwickeln?“\n"
@@ -63,7 +73,7 @@ class handler(BaseHTTPRequestHandler):
                 "4. **Übergang zur Konzept-Phase**\n"
                 "   - Wenn wir beide sagen „Jo, das gefällt uns – jetzt bitte ein Konzept“, erstellst du das **detaillierte Formatkonzept** mit:\n"
                 "     - Titel\n"
-                "     - Prämisse\n"
+                "     - Prämise\n"
                 "     - Story-Architektur\n"
                 "     - Episoden-Outline\n"
                 "     - Plattform\n"
@@ -73,26 +83,49 @@ class handler(BaseHTTPRequestHandler):
                 "- Nur bei echten Wissenslücken (Budget, Rechte, technische Hürden) stellst du **eine** kurze Rückfrage.\n\n"
                 "## Tonalität\n"
                 "Kreativ, engagiert, dialogorientiert, lösungsfokussiert.\n"
-                "Denke daran: Es muss nicht zwangsläufig ein vollständiges Format am Ende entstehen; der Dialog kann auch ergebnislos enden."
+                "Denke daran: Es muss nicht zwangsläufig ein vollständiges Format am Ende entstehen; der Dialog kann auch ergebnislos enden.\n"
+                f"WICHTIG: Du arbeitest tagesaktuell. Das heutige Datum ist: {current_date}. "
+                "Antworte IMMER auf Deutsch und halte dich strikt an deine Rolle. Beginne IMMER mit deiner Eröffnungsfrage: „Was wollen wir heute gemeinsam Verrücktes entwickeln?“"
             )
             messages.append({"role": "system", "content": sparring_partner_system_content})
 
             # Lade den Chat-Verlauf und füge ihn nach der Systemnachricht hinzu
+            chat_history = []
             chat_history_json = data.get('chat_history_json', '[]')
             try:
                 parsed_history = json.loads(chat_history_json)
                 if isinstance(parsed_history, list):
-                    for msg in parsed_history:
-                        if msg.get('role') in ['user', 'assistant'] and 'content' in msg:
-                            messages.append({"role": msg['role'], "content": msg['content']})
+                    chat_history = parsed_history
             except json.JSONDecodeError:
                 print("Fehler beim Dekodieren des Chat-Verlaufs. Starte mit leerer Historie.")
             
+            # Füge die vergangene Konversation den Nachrichten hinzu
+            for msg in chat_history:
+                if msg.get('role') in ['user', 'assistant'] and 'content' in msg:
+                    messages.append({"role": msg['role'], "content": msg['content']})
+            
             user_input = data.get('brainstorming_input', '').strip()
-            user_message_content = user_input # Die aktuelle User-Eingabe
+
+            # Steuerung des initialen Dialogs im Brainstorming-Modus:
+            # Nur wenn ein User-Input für diese Anfrage vorhanden ist ODER bereits Chat-Verlauf existiert,
+            # wird eine 'user'-Nachricht hinzugefügt.
+            # Bei der allerersten Interaktion (kein user_input und kein chat_history) soll die KI 
+            # ihre Begrüßungsfrage aus dem System-Prompt senden.
+            if user_input:
+                messages.append({"role": "user", "content": user_input})
+            elif not chat_history:
+                # Wenn es der allererste Aufruf ist und kein expliziter User-Input vorliegt,
+                # wird absichtlich keine 'user'-Nachricht hinzugefügt.
+                # Die KI soll dann auf Basis ihres System-Prompts antworten.
+                pass 
+            else:
+                # Falls user_input leer ist, aber ein Chat-Verlauf existiert,
+                # könnte dies ein impliziter "Weiter"-Befehl sein.
+                messages.append({"role": "user", "content": "Weiter geht's!"})
+            
 
         elif action_type == 'existing_format':
-            messages.append({"role": "system", "content": base_system_content + " Deine Aufgabe ist es, Vorschläge zur Weiterentwicklung eines bestehenden TV-/Streaming-Formats zu machen."})
+            messages.append({"role": "system", "content": base_system_content + " Deine Aufgabe ist es, Vorschläge zur Weiterentwicklung eines bestehenden TV-/Streaming-Formats zu machen. Antworte auf Deutsch."})
             
             existing_format_name = data.get('existing_format_name', 'Nicht angegeben')
             existing_format_notes = data.get('existing_format_notes', 'Keine Anmerkungen')
@@ -102,9 +135,10 @@ class handler(BaseHTTPRequestHandler):
                 f"Anmerkungen zur Weiterentwicklung: {existing_format_notes}\n\n"
                 "Bitte analysiere diese Informationen und gib erste Vorschläge zur Weiterentwicklung."
             )
+            messages.append({"role": "user", "content": user_message_content})
 
         elif action_type == 'new_development':
-            messages.append({"role": "system", "content": base_system_content + " Deine Aufgabe ist es, ein neues Format in einem bestimmten Genre zu entwickeln. Stelle dazu präzise Fragen, um die Idee zu vertiefen und das Konzept zu schärfen."})
+            messages.append({"role": "system", "content": base_system_content + " Deine Aufgabe ist es, ein neues Format in einem bestimmten Genre zu entwickeln. Stelle dazu präzise Fragen, um die Idee zu vertiefen und das Konzept zu schärfen. Antworte auf Deutsch."})
 
             new_development_genre = data.get('new_development_genre', 'Nicht angegeben')
             new_development_initial_ideas = data.get('new_development_initial_ideas', 'Keine weiteren Ideen')
@@ -113,12 +147,14 @@ class handler(BaseHTTPRequestHandler):
                 f"Erste Ideen/Stichpunkte: {new_development_initial_ideas}\n\n"
                 "Bitte analysiere diese Informationen und stelle gezielte Nachfragen, um die Richtung des Formats zu intensivieren."
             )
+            messages.append({"role": "user", "content": user_message_content})
 
         elif action_type == 'pitch_paper':
-            messages.append({"role": "system", "content": base_system_content + " Deine Aufgabe ist es, ein detailliertes Pitch Paper zu erstellen. Fülle alle Abschnitte basierend auf den bereitgestellten Informationen aus und präsentiere sie professionell."})
+            messages.append({"role": "system", "content": base_system_content + " Deine Aufgabe ist es, ein detailliertes Pitch Paper zu erstellen. Fülle alle Abschnitte basierend auf den bereitgestellten Informationen aus und präsentiere sie professionell. Antworte auf Deutsch."})
 
+            # Behandle `pp_assignment_type` korrekt, da es eine Liste von Werten sein kann
             assignment_types = data.get('pp_assignment_type', [])
-            if isinstance(assignment_types, str):
+            if isinstance(assignment_types, str): # Falls es nur ein einzelner String ist, mach eine Liste draus
                 assignment_types = [assignment_types]
             
             user_message_content = "\n--- Pitch Paper Template ist aktiviert ---\n"
@@ -157,17 +193,19 @@ class handler(BaseHTTPRequestHandler):
             user_message_content += f"Hinweise zur Pilotphase:\n{data.get('evaluation_pilot', 'N/A')}\n"
             
             user_message_content += "\n**6. Revision & Selbstkontrolle**\n"
-            user_message_content += f"Logik geprüft: {'Ja' if 'revision_logic' in data else 'Nein'}\n"
-            user_message_content += f"Zahlen & Trends belegt: {'Ja' if 'revision_data_trends' in data else 'Nein'}\n"
-            user_message_content += f"Formatierung klar: {'Ja' if 'revision_formatting' in data else 'Nein'}\n"
-            user_message_content += f"Alle Abschnitte vollständig: {'Ja' if 'revision_sections_complete' in data else 'Nein'}\n"
+            user_message_content += f"Logik geprüft: {'Ja' if 'revision_logic' in data and data['revision_logic'] == 'on' else 'Nein'}\n"
+            user_message_content += f"Zahlen & Trends belegt: {'Ja' if 'revision_data_trends' in data and data['revision_data_trends'] == 'on' else 'Nein'}\n"
+            user_message_content += f"Formatierung klar: {'Ja' if 'revision_formatting' in data and data['revision_formatting'] == 'on' else 'Nein'}\n"
+            user_message_content += f"Alle Abschnitte vollständig: {'Ja' if 'revision_sections_complete' in data and data['revision_sections_complete'] == 'on' else 'Nein'}\n"
             user_message_content += "\n**Generiere nun das vollständige Pitch Paper basierend auf diesen Informationen.**"
+            messages.append({"role": "user", "content": user_message_content})
 
-        # Füge die aktuelle User-Nachricht hinzu
-        messages.append({"role": "user", "content": user_message_content})
 
         try:
+            # Prüfen, ob der API-Schlüssel gesetzt ist, bevor der Aufruf erfolgt
             if not client.api_key:
+                # Loggen des Fehlers für Debugging in Vercel
+                print("FEHLER: OPENAI_API_KEY environment variable not set.")
                 raise ValueError("OPENAI_API_KEY environment variable not set.")
 
             completion = client.chat.completions.create(
@@ -181,7 +219,8 @@ class handler(BaseHTTPRequestHandler):
             self.end_headers()
             self.wfile.write(json.dumps({"success": True, "response": response_content}).encode('utf-8'))
         except Exception as e:
-            print(f"Ein Fehler ist aufgetreten: {e}") # Zum Debuggen in Vercel Logs
+            # Ausführlicheres Logging des Fehlers für bessere Diagnose
+            print(f"Ein Fehler ist aufgetreten beim OpenAI-Aufruf: {e}") 
             self.send_response(500)
             self.send_header('Content-type', 'application/json')
             self.end_headers()
