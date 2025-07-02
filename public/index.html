@@ -142,7 +142,7 @@
         <div id="common_expert_description" class="section hidden-section">
             <p><strong>WICHTIG:</strong> Du arbeitest <strong>tagesaktuell</strong>. Das heutige Datum ist: <span class="current-date" id="current_date"></span>.</p>
             <p>Verwende es für alle Recherchen, Marktanalysen, Streaming-Trends und zeitliche Relevanzprüfungen.</p>
-            <p><strong>Hinweis:</strong> Für die Generierung wird das Modell <strong>GPT-3.5-Turbo</strong> (entspricht "o3 mini") verwendet.</p>
+            <p><strong>Hinweis:</strong> Für die Generierung wird das Modell <strong>GPT-4o Mini</strong> verwendet.</p>
         </div>
 
         <hr id="common_hr" class="hidden-section">
@@ -339,7 +339,6 @@
             document.getElementById('response-container').style.display = 'none'; // KI-Antwort-Container verstecken
         }
 
-        // Alle Sektionen, die nach der Initialauswahl erscheinen sollen
         const allActionSections = [
             brainstormingSection,
             existingFormatSection,
@@ -349,16 +348,13 @@
             resetButton
         ];
 
-        // Funktion zum Verstecken aller dynamischen Sektionen und des Bestätigungsbuttons
         function hideAllDynamicSections() {
             allActionSections.forEach(section => section.classList.add('hidden-section'));
             confirmSelectionButton.classList.add('hidden-section');
-            // Die Rollenbeschreibung und die dazugehörige Linie bleiben dauerhaft versteckt
             commonExpertDescription.classList.add('hidden-section');
             commonHr.classList.add('hidden-section');
         }
 
-        // Funktion zum Anzeigen des Bestätigungsbuttons, sobald eine Option gewählt ist
         function showConfirmButton() {
             const selectedAction = document.querySelector('input[name="action_type"]:checked');
             if (selectedAction) {
@@ -368,35 +364,45 @@
             }
         }
 
-        // Funktion, die ausgelöst wird, wenn der "Auswahl bestätigen & Weiter" Button geklickt wird
         function handleConfirmSelection() {
-            hideAllDynamicSections(); // Zuerst alles verstecken, außer der initialen Auswahlbox
-            document.getElementById('response-container').style.display = 'none'; // KI-Antwort verstecken
+            hideAllDynamicSections();
+            document.getElementById('response-container').style.display = 'none';
 
             const selectedAction = document.querySelector('input[name="action_type"]:checked');
 
             if (selectedAction) {
-                // Keine 'common_expert_description' oder 'common_hr' mehr sichtbar machen
                 submitButton.classList.remove('hidden-section'); // Absenden-Button immer anzeigen
+
+                // Bei Moduswechsel immer Chat-Historie zurücksetzen,
+                // außer beim "Pitch Paper" direkt, da dort kein Chat vorgesehen ist.
+                if (selectedAction.value !== 'pitch_paper') {
+                    resetChatHistory(); // Stellt sicher, dass wir bei 0 starten
+                }
 
                 switch (selectedAction.value) {
                     case 'brainstorming':
                         brainstormingSection.classList.remove('hidden-section');
-                        resetButton.classList.remove('hidden-section'); // Reset-Button anzeigen
-                        resetChatHistory(); // Neuen Chat starten oder alten laden
-                        displayChatHistory(loadChatHistory()); // Historie laden und anzeigen
+                        resetButton.classList.remove('hidden-section');
+                        // Initialen Prompt für Brainstorming direkt an die KI senden,
+                        // wenn der Chat neu ist (Historie leer)
+                        const currentChatHistory = loadChatHistory();
+                        if (currentChatHistory.length === 0) {
+                            // Sende einen initialen leeren Input, um die KI zu triggern
+                            // Dies wird durch das Backend als "Starte Dialog" interpretiert
+                            brainstormingInput.value = '';
+                            document.getElementById('formatDevelopmentForm').dispatchEvent(new Event('submit', {bubbles: true}));
+                        } else {
+                            displayChatHistory(currentChatHistory);
+                        }
                         break;
                     case 'existing_format':
                         existingFormatSection.classList.remove('hidden-section');
-                        resetChatHistory(); // Chat-Historie leeren, da anderer Modus
                         break;
                     case 'new_development':
                         newDevelopmentSection.classList.remove('hidden-section');
-                        resetChatHistory(); // Chat-Historie leeren
                         break;
                     case 'pitch_paper':
                         pitchPaperSection.classList.remove('hidden-section');
-                        resetChatHistory(); // Chat-Historie leeren
                         break;
                 }
             }
@@ -404,7 +410,7 @@
 
         // Event Listener für die Radio-Buttons zur Auswahl des Aktions-Typs
         document.querySelectorAll('input[name="action_type"]').forEach(radio => {
-            radio.addEventListener('change', showConfirmButton); // Zeigt den Weiter-Button an
+            radio.addEventListener('change', showConfirmButton);
         });
 
         // Event Listener für den neuen "Auswahl bestätigen & Weiter" Button
@@ -454,10 +460,10 @@
                 chatHistoryJsonInput.value = JSON.stringify(currentChatHistory);
                 
                 // Leere das Inputfeld nach dem Senden
-                brainstormingInput.value = '';
+                brainstormingInput.value = ''; // Wichtig: Leere das Feld hier, nicht vorher.
             } else {
-                // Bei anderen Modi sicherstellen, dass die Historie leer ist (oder relevant bleibt, wenn wir später andere Modi chatfähig machen wollen)
-                // Für jetzt: nur Brainstorming-Chat-Historie senden
+                // Bei anderen Modi wird die Historie nicht für den API-Aufruf verwendet,
+                // aber der LocalStorage wurde beim Moduswechsel schon zurückgesetzt.
                 chatHistoryJsonInput.value = JSON.stringify([]);
             }
 
@@ -480,31 +486,3 @@
                     // Wenn im Brainstorming-Modus, KI-Antwort zur Historie hinzufügen und speichern
                     if (selectedAction && selectedAction.value === 'brainstorming') {
                         currentChatHistory.push({ role: 'assistant', content: result.response });
-                        saveChatHistory(currentChatHistory);
-                        displayChatHistory(currentChatHistory); // UI aktualisieren
-                    }
-                } else {
-                    responseText.innerText = `Fehler: ${result.error}`;
-                }
-            } catch (error) {
-                responseText.innerText = `Ein unerwarteter Fehler ist aufgetreten: ${error.message}`;
-            }
-        });
-
-        // Event Listener für den Reset-Button
-        if (resetButton) {
-            resetButton.addEventListener('click', resetChatHistory);
-        }
-
-        // Initialisierung beim Laden der Seite
-        document.addEventListener('DOMContentLoaded', function() {
-            document.getElementById('current_date').innerText = new Date().toLocaleDateString('de-DE', { year: 'numeric', month: 'long', day: 'numeric' });
-            hideAllDynamicSections(); // Alles initial ausblenden, inkl. Rollenbeschreibung
-            // Stellt sicher, dass das Genre-Feld bei "Neuentwicklung" im Pitch Paper korrekt initialisiert wird
-            document.getElementById('pp_genre_input').disabled = !document.getElementById('pp_new_development_checkbox').checked;
-        });
-
-    </script>
-
-</body>
-</html>
