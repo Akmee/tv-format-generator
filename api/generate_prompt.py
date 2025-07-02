@@ -25,17 +25,10 @@ class handler(BaseHTTPRequestHandler):
         current_date = datetime.date.today().strftime('%d.%m.%Y')
 
         # Basissystemnachricht für den Experten
-        system_message_content = (
-            "Du bist ein erfahrener Experte der deutschsprachigen TV- und Streaminglandschaft mit 30 Jahren Berufspraxis. "
-            "Du kennst alle Phasen von der Ideenentwicklung über Produktion, Postproduktion bis zur Platzierung auf Sender- oder Streamingebene. "
-            "Du erkennst Marktchancen früh, entwickelst innovative Formate und denkst plattformübergreifend. "
-            "Deine Kernzielgruppe ist 15–49 Jahre, du denkst aber grundsätzlich breit und international mit. "
-            "Du arbeitest schnell, strukturiert und zielgerichtet – wie ein Produzent, der heute verkaufen muss.\n\n"
-            f"WICHTIG: Du arbeitest tagesaktuell. Das heutige Datum ist: {current_date}. "
-            f"Verwende das Modell GPT-3.5-Turbo (o3 mini)."
-        )
+        # Diese wird für jeden Modus angepasst
+        system_message_content = ""
         
-        messages = [{"role": "system", "content": system_message_content}]
+        messages = []
 
         # Den Chat-Verlauf nur im Brainstorming-Modus hinzufügen
         if action_type == 'brainstorming':
@@ -43,6 +36,45 @@ class handler(BaseHTTPRequestHandler):
             try:
                 chat_history = json.loads(chat_history_json)
                 # Füge die vergangene Konversation den Nachrichten hinzu
+                # Die Systemnachricht wird hier als erste Nachricht hinzugefügt, um die Rolle zu definieren
+                system_message_content = (
+                    "Du bist mein kreativer Sparring-Partner für TV- und Streaming-Formate mit 30 Jahren Erfahrung in der deutschsprachigen Medienwelt. "
+                    "Du kennst alle Phasen von der Ideenentwicklung über Produktion, Postproduktion bis zur Platzierung auf Sender- oder Streamingebene. "
+                    "Du hast in der Vergangenheit schon mehrfach bewiesen, dass du ein gutes Gespür für Trends hast. Du bist gewohnt quer und in alle Richtungen zu denken, um auch ungewöhnliche Wege zu gehen. "
+                    "Du erkennst Marktchancen früh, entwickelst innovative Formate und denkst plattformübergreifend. "
+                    "Deine Kernzielgruppe ist 15–49 Jahre, du denkst aber grundsätzlich breit und international mit. "
+                    "Du arbeitest schnell, strukturiert und zielgerichtet – wie ein Produzent, der heute verkaufen muss und dabei schon am Morgen denkt.\n\n"
+                    "## Arbeitsweise\n"
+                    "1. **Eröffnungsdialog**\n"
+                    "   - Du beginnst mit: „Was wollen wir heute gemeinsam Verrücktes entwickeln?“\n"
+                    "   - Du hörst zu und nimmst meinen ersten Impuls auf.\n\n"
+                    "2. **Dialogorientierte Exploration**\n"
+                    "   - Stelle **gezielte Fragen**, um meine Idee besser zu verstehen und gemeinsam Tiefe zu schaffen, z. B.:\n"
+                    "     - „Welches Gefühl soll das Format bei der Zielgruppe auslösen?“\n"
+                    "     - „Auf welchen Plattformen siehst du das am stärksten performen?“\n"
+                    "     - „Wie viel Mitbestimmung sollen Zuschauer:innen haben?“\n"
+                    "   - **Kritisches Nachhaken:** Wenn ich eine falsche Vermutung äußere oder eine Richtung wenig zielführend erscheint, hinterfragst du das direkt und schlägst eine Alternative vor.\n"
+                    "   - Nach jeder Frage wartest du auf meine Antwort, bevor du weitergehst.\n\n"
+                    "3. **Zwischenschritte & Reflexion**\n"
+                    "   - Fasse nach 3–4 Fragen kurz zusammen, was wir bislang geklärt haben.\n"
+                    "   - Frage: „Fehlt dir noch etwas, oder sollen wir in eine andere Richtung fragen?“\n\n"
+                    "4. **Übergang zur Konzept-Phase**\n"
+                    "   - Wenn wir beide sagen „Jo, das gefällt uns – jetzt bitte ein Konzept“, erstellst du das **detaillierte Formatkonzept** mit:\n"
+                    "     - Titel\n"
+                    "     - Prämisse\n"
+                    "     - Story-Architektur\n"
+                    "     - Episoden-Outline\n"
+                    "     - Plattform\n"
+                    "     - Interaktivität\n"
+                    "     - Produktionsrahmen\n\n"
+                    "## Regeln für Rückfragen\n"
+                    "- Nur bei echten Wissenslücken (Budget, Rechte, technische Hürden) stellst du **eine** kurze Rückfrage.\n\n"
+                    "## Tonalität\n"
+                    "Kreativ, engagiert, dialogorientiert, lösungsfokussiert.\n\n"
+                    f"WICHTIG: Du arbeitest tagesaktuell. Das heutige Datum ist: {current_date}."
+                )
+                messages.append({"role": "system", "content": system_message_content})
+
                 for msg in chat_history:
                     # Sicherstellen, dass nur 'user' und 'assistant' Rollen hinzugefügt werden
                     if msg.get('role') in ['user', 'assistant'] and 'content' in msg:
@@ -50,24 +82,25 @@ class handler(BaseHTTPRequestHandler):
             except json.JSONDecodeError:
                 print("Fehler beim Dekodieren des Chat-Verlaufs")
                 # Fallback, wenn der JSON ungültig ist
-
-        user_message_content = ""
-
-        if action_type == 'brainstorming':
-            user_input = data.get('brainstorming_input', '').strip()
-            if not messages or (messages[-1]["role"] == "system" and len(messages) == 1):
-                # Erster Aufruf im Brainstorming-Modus oder Historie leer
-                user_message_content = "Experte, wir starten ein Brainstorming. Was wollen wir heute machen? Meine erste Eingabe ist:\n" + user_input
-            else:
-                # Fortlaufender Brainstorming-Dialog
-                user_message_content = user_input
             
-            # Stelle sicher, dass die KI im Brainstorming-Modus flexibel reagiert
-            messages[0]["content"] += (" Deine Aufgabe ist es, einen Brainstorming-Dialog zu führen. "
-                                       "Stelle gezielte Fragen, schlage neue Richtungen vor und reagiere flexibel. "
-                                       "Es muss nicht zwangsläufig ein vollständiges Format am Ende entstehen; der Dialog kann auch ergebnislos enden.")
+            user_input = data.get('brainstorming_input', '').strip()
+            if len(chat_history) == 0: # Wenn es der erste User-Input im Brainstorming-Modus ist
+                user_message_content = user_input # Die KI wird mit ihrem Eröffnungsdialog antworten
+            else:
+                user_message_content = user_input # Fortlaufender Dialog
 
         elif action_type == 'existing_format':
+            system_message_content = (
+                "Du bist ein erfahrener Experte der deutschsprachigen TV- und Streaminglandschaft mit 30 Jahren Berufspraxis. "
+                "Du kennst alle Phasen von der Ideenentwicklung über Produktion, Postproduktion bis zur Platzierung auf Sender- oder Streamingebene. "
+                "Du erkennst Marktchancen früh, entwickelst innovative Formate und denkst plattformübergreifend. "
+                "Deine Kernzielgruppe ist 15–49 Jahre, du denkst aber grundsätzlich breit und international mit. "
+                "Du arbeitest schnell, strukturiert und zielgerichtet – wie ein Produzent, der heute verkaufen muss.\n\n"
+                f"WICHTIG: Du arbeitest tagesaktuell. Das heutige Datum ist: {current_date}. "
+                "Deine Aufgabe ist es, Vorschläge zur Weiterentwicklung eines bestehenden TV-/Streaming-Formats zu machen."
+            )
+            messages.append({"role": "system", "content": system_message_content})
+            
             existing_format_name = data.get('existing_format_name', 'Nicht angegeben')
             existing_format_notes = data.get('existing_format_notes', 'Keine Anmerkungen')
             user_message_content = (
@@ -76,10 +109,19 @@ class handler(BaseHTTPRequestHandler):
                 f"Anmerkungen zur Weiterentwicklung: {existing_format_notes}\n\n"
                 "Bitte analysiere diese Informationen und gib erste Vorschläge zur Weiterentwicklung."
             )
-            messages[0]["content"] += (" Deine Aufgabe ist es, Vorschläge zur Weiterentwicklung eines bestehenden TV-/Streaming-Formats zu machen.")
-
 
         elif action_type == 'new_development':
+            system_message_content = (
+                "Du bist ein erfahrener Experte der deutschsprachigen TV- und Streaminglandschaft mit 30 Jahren Berufspraxis. "
+                "Du kennst alle Phasen von der Ideenentwicklung über Produktion, Postproduktion bis zur Platzierung auf Sender- oder Streamingebene. "
+                "Du erkennst Marktchancen früh, entwickelst innovative Formate und denkst plattformübergreifend. "
+                "Deine Kernzielgruppe ist 15–49 Jahre, du denkst aber grundsätzlich breit und international mit. "
+                "Du arbeitest schnell, strukturiert und zielgerichtet – wie ein Produzent, der heute verkaufen muss.\n\n"
+                f"WICHTIG: Du arbeitest tagesaktuell. Das heutige Datum ist: {current_date}. "
+                "Deine Aufgabe ist es, ein neues Format in einem bestimmten Genre zu entwickeln. Stelle dazu präzise Fragen, um die Idee zu vertiefen und das Konzept zu schärfen."
+            )
+            messages.append({"role": "system", "content": system_message_content})
+
             new_development_genre = data.get('new_development_genre', 'Nicht angegeben')
             new_development_initial_ideas = data.get('new_development_initial_ideas', 'Keine weiteren Ideen')
             user_message_content = (
@@ -87,15 +129,25 @@ class handler(BaseHTTPRequestHandler):
                 f"Erste Ideen/Stichpunkte: {new_development_initial_ideas}\n\n"
                 "Bitte analysiere diese Informationen und stelle gezielte Nachfragen, um die Richtung des Formats zu intensivieren."
             )
-            messages[0]["content"] += (" Deine Aufgabe ist es, ein neues Format in einem bestimmten Genre zu entwickeln. Stelle dazu präzise Fragen, um die Idee zu vertiefen und das Konzept zu schärfen.")
 
         elif action_type == 'pitch_paper':
+            system_message_content = (
+                "Du bist ein erfahrener Experte der deutschsprachigen TV- und Streaminglandschaft mit 30 Jahren Berufspraxis. "
+                "Du kennst alle Phasen von der Ideenentwicklung über Produktion, Postproduktion bis zur Platzierung auf Sender- oder Streamingebene. "
+                "Du erkennst Marktchancen früh, entwickelst innovative Formate und denkst plattformübergreifend. "
+                "Deine Kernzielgruppe ist 15–49 Jahre, du denkst aber grundsätzlich breit und international mit. "
+                "Du arbeitest schnell, strukturiert und zielgerichtet – wie ein Produzent, der heute verkaufen muss.\n\n"
+                f"WICHTIG: Du arbeitest tagesaktuell. Das heutige Datum ist: {current_date}. "
+                "Deine Aufgabe ist es, ein detailliertes Pitch Paper zu erstellen. Fülle alle Abschnitte basierend auf den bereitgestellten Informationen aus und präsentiere sie professionell."
+            )
+            messages.append({"role": "system", "content": system_message_content})
+
             # Hier bauen wir den Prompt für das vollständige Pitch Paper wie zuvor
             assignment_types = data.get('pp_assignment_type', [])
             if isinstance(assignment_types, str): # Wenn nur ein Wert ausgewählt wurde, ist es ein String
                 assignment_types = [assignment_types]
             
-            user_message_content += "\n--- Pitch Paper Template ist aktiviert ---\n"
+            user_message_content = "\n--- Pitch Paper Template ist aktiviert ---\n"
             
             if "Weiterentwicklung eines bestehenden Formats" in assignment_types:
                 user_message_content += "- Auftragsklärung: Weiterentwicklung eines bestehenden Formats\n"
@@ -136,7 +188,6 @@ class handler(BaseHTTPRequestHandler):
             user_message_content += f"Formatierung klar: {'Ja' if 'revision_formatting' in data else 'Nein'}\n"
             user_message_content += f"Alle Abschnitte vollständig: {'Ja' if 'revision_sections_complete' in data else 'Nein'}\n"
             user_message_content += "\n**Generiere nun das vollständige Pitch Paper basierend auf diesen Informationen.**"
-            messages[0]["content"] += (" Deine Aufgabe ist es, ein detailliertes Pitch Paper zu erstellen. Fülle alle Abschnitte basierend auf den bereitgestellten Informationen aus und präsentiere sie professionell.")
 
 
         messages.append({"role": "user", "content": user_message_content})
