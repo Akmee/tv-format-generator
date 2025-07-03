@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TV-/Streaming-Formatentwicklung: Deep Prompt Template</title>
+    <title>TV-Format Entwicklungstool</title>
     <style>
         * {
             margin: 0;
@@ -12,19 +12,18 @@
         }
 
         body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            line-height: 1.6;
-            color: #1a1a1a;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             padding: 20px;
+            color: #333;
         }
 
         .container {
-            max-width: 1000px;
+            max-width: 1200px;
             margin: 0 auto;
             background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(20px);
+            backdrop-filter: blur(10px);
             border-radius: 20px;
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
             overflow: hidden;
@@ -36,122 +35,163 @@
             padding: 40px;
             text-align: center;
             position: relative;
+            overflow: hidden;
         }
 
         .header::before {
             content: '';
             position: absolute;
             top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="20" cy="20" r="1" fill="white" opacity="0.1"/><circle cx="80" cy="80" r="1" fill="white" opacity="0.1"/><circle cx="40" cy="60" r="1" fill="white" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
-            opacity: 0.1;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            animation: shine 3s infinite;
+        }
+
+        @keyframes shine {
+            0% { left: -100%; }
+            50% { left: 100%; }
+            100% { left: 100%; }
         }
 
         .header h1 {
             font-size: 2.5rem;
-            font-weight: 800;
             margin-bottom: 10px;
-            position: relative;
-            z-index: 1;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
         }
 
-        .header .subtitle {
-            font-size: 1.1rem;
+        .header p {
+            font-size: 1.2rem;
             opacity: 0.9;
-            position: relative;
-            z-index: 1;
         }
 
         .content {
             padding: 40px;
         }
 
-        .section {
-            background: white;
-            border-radius: 16px;
-            padding: 30px;
-            margin-bottom: 25px;
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
-            border: 1px solid rgba(0, 0, 0, 0.05);
-            transition: all 0.3s ease;
+        .mode-selector {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+            margin-bottom: 40px;
         }
 
-        .section:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.12);
+        .mode-card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            border: 3px solid transparent;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .mode-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: 1;
+        }
+
+        .mode-card:hover::before {
+            opacity: 0.1;
+        }
+
+        .mode-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.15);
+        }
+
+        .mode-card.selected {
+            border-color: #667eea;
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        .mode-card .icon {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            display: block;
+            position: relative;
+            z-index: 2;
+        }
+
+        .mode-card h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.4rem;
+            position: relative;
+            z-index: 2;
+        }
+
+        .mode-card p {
+            color: #666;
+            line-height: 1.6;
+            position: relative;
+            z-index: 2;
+        }
+
+        .section {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            border-left: 5px solid #667eea;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            display: none;
+        }
+
+        .section.active {
+            display: block;
+            animation: fadeInUp 0.5s ease;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         .section h2 {
-            color: #2d3748;
-            font-size: 1.5rem;
-            font-weight: 700;
-            margin-bottom: 20px;
+            color: #333;
+            margin-bottom: 25px;
+            font-size: 1.8rem;
             display: flex;
             align-items: center;
             gap: 10px;
         }
 
-        .section h3 {
-            color: #4a5568;
-            font-size: 1.2rem;
-            font-weight: 600;
-            margin: 20px 0 15px 0;
+        .form-group {
+            margin-bottom: 25px;
         }
 
-        .radio-group {
-            display: grid;
-            gap: 15px;
-            margin-bottom: 20px;
-        }
-
-        .radio-option {
-            background: #f8fafc;
-            border: 2px solid #e2e8f0;
-            border-radius: 12px;
-            padding: 20px;
-            transition: all 0.3s ease;
-            cursor: pointer;
-            position: relative;
-        }
-
-        .radio-option:hover {
-            background: #edf2f7;
-            border-color: #cbd5e0;
-        }
-
-        .radio-option.selected {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-color: #667eea;
-            color: white;
-        }
-
-        .radio-option input[type="radio"] {
-            position: absolute;
-            opacity: 0;
-        }
-
-        .radio-option label {
+        label {
             display: block;
-            cursor: pointer;
+            margin-bottom: 8px;
             font-weight: 600;
-            margin-bottom: 5px;
-        }
-
-        .radio-option .description {
-            font-size: 0.9rem;
-            opacity: 0.8;
+            color: #555;
         }
 
         input[type="text"], textarea {
             width: 100%;
             padding: 15px;
-            border: 2px solid #e2e8f0;
-            border-radius: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
             font-size: 1rem;
             transition: all 0.3s ease;
-            background: #f8fafc;
+            background: #fafafa;
         }
 
         input[type="text"]:focus, textarea:focus {
@@ -167,597 +207,442 @@
             font-family: inherit;
         }
 
-        label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-            color: #2d3748;
-        }
-
-        .button {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        .btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
             color: white;
-            padding: 15px 30px;
             border: none;
-            border-radius: 12px;
-            cursor: pointer;
-            font-size: 1rem;
+            padding: 15px 30px;
+            border-radius: 50px;
+            font-size: 1.1rem;
             font-weight: 600;
+            cursor: pointer;
             transition: all 0.3s ease;
             display: inline-flex;
             align-items: center;
-            gap: 8px;
-            text-decoration: none;
+            gap: 10px;
         }
 
-        .button:hover {
+        .btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
         }
 
-        .button:active {
+        .btn:active {
             transform: translateY(0);
         }
 
-        .button.secondary {
-            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        .btn.secondary {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
         }
 
-        .button.danger {
-            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+        .chat-container {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 25px;
+            max-height: 400px;
+            overflow-y: auto;
+            border: 2px solid #e9ecef;
+        }
+
+        .chat-message {
+            margin-bottom: 15px;
+            padding: 15px;
+            border-radius: 10px;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .chat-message.user {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            margin-left: 50px;
+        }
+
+        .chat-message.assistant {
+            background: white;
+            border: 2px solid #e9ecef;
+            margin-right: 50px;
+        }
+
+        .chat-message .role {
+            font-weight: 600;
+            margin-bottom: 5px;
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+
+        .response-container {
+            background: linear-gradient(135deg, #e8f4f8, #f0f8ff);
+            border-radius: 15px;
+            padding: 30px;
+            margin-top: 30px;
+            border: 2px solid #667eea;
+            display: none;
+        }
+
+        .response-container.active {
+            display: block;
+            animation: fadeInUp 0.5s ease;
+        }
+
+        .loading {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            color: #667eea;
+        }
+
+        .loading::before {
+            content: '';
+            width: 20px;
+            height: 20px;
+            border: 3px solid #e0e0e0;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .current-date {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: 600;
+            display: inline-block;
         }
 
         .hidden {
             display: none !important;
         }
 
-        .current-date {
-            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
-            color: #8b4513;
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-weight: 700;
-            display: inline-block;
-        }
-
-        .chat-history {
-            background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
-            border-radius: 16px;
-            padding: 20px;
-            margin-bottom: 20px;
-            max-height: 300px;
-            overflow-y: auto;
-            border: 1px solid rgba(0, 0, 0, 0.1);
-        }
-
-        .chat-message {
-            margin-bottom: 15px;
-            padding: 12px 16px;
-            border-radius: 12px;
-            font-size: 0.95rem;
-            line-height: 1.5;
-        }
-
-        .chat-message.user {
-            background: rgba(102, 126, 234, 0.1);
-            border: 1px solid rgba(102, 126, 234, 0.2);
-            margin-left: 20px;
-        }
-
-        .chat-message.assistant {
-            background: rgba(255, 255, 255, 0.8);
-            border: 1px solid rgba(0, 0, 0, 0.1);
-            margin-right: 20px;
-        }
-
-        .chat-message .role {
-            font-weight: 700;
-            margin-bottom: 5px;
-            color: #2d3748;
-        }
-
-        .response-container {
-            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
-            border-radius: 16px;
-            padding: 25px;
-            margin-top: 25px;
-            border: 1px solid rgba(0, 0, 0, 0.1);
-        }
-
-        .response-container h3 {
-            color: #8b4513;
-            margin-bottom: 15px;
-            font-size: 1.3rem;
-        }
-
-        .loading {
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-            color: #667eea;
-            font-weight: 600;
-        }
-
-        .loading::after {
-            content: '';
-            width: 20px;
-            height: 20px;
-            border: 2px solid #667eea;
-            border-top: 2px solid transparent;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        .checkbox-group {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 15px;
-            margin: 15px 0;
-        }
-
-        .checkbox-option {
-            background: #f8fafc;
-            border: 2px solid #e2e8f0;
-            border-radius: 10px;
-            padding: 15px;
-            transition: all 0.3s ease;
-            cursor: pointer;
-        }
-
-        .checkbox-option:hover {
-            background: #edf2f7;
-        }
-
-        .checkbox-option.checked {
-            background: rgba(102, 126, 234, 0.1);
-            border-color: #667eea;
-        }
-
-        .checkbox-option input[type="checkbox"] {
-            margin-right: 10px;
-        }
-
-        .form-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-            margin-bottom: 20px;
-        }
-
         @media (max-width: 768px) {
-            .form-grid {
-                grid-template-columns: 1fr;
-            }
-            
             .header h1 {
                 font-size: 2rem;
+            }
+            
+            .mode-selector {
+                grid-template-columns: 1fr;
             }
             
             .content {
                 padding: 20px;
             }
-            
-            .section {
-                padding: 20px;
-            }
-        }
-
-        .status-indicator {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-size: 0.9rem;
-            font-weight: 600;
-        }
-
-        .status-indicator.active {
-            background: rgba(72, 187, 120, 0.1);
-            color: #38a169;
-            border: 1px solid rgba(72, 187, 120, 0.2);
-        }
-
-        .status-indicator.inactive {
-            background: rgba(160, 174, 192, 0.1);
-            color: #718096;
-            border: 1px solid rgba(160, 174, 192, 0.2);
         }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>🎬 TV-/Streaming-Formatentwicklung</h1>
-            <div class="subtitle">Deep Prompt Template für innovative Medienformate</div>
+            <h1>🎬 TV-Format Entwicklungstool</h1>
+            <p>Professionelle Formatentwicklung mit KI-Unterstützung</p>
         </div>
 
         <div class="content">
-            <form id="formatDevelopmentForm">
-                <div class="section">
-                    <h2>🧠 Was möchtest du entwickeln?</h2>
-                    <p style="margin-bottom: 20px; color: #4a5568;">Wähle deinen bevorzugten Entwicklungsmodus:</p>
-                    
-                    <div class="radio-group">
-                        <div class="radio-option" data-value="brainstorming">
-                            <input type="radio" id="action_brainstorming" name="action_type" value="brainstorming">
-                            <label for="action_brainstorming">💬 Brainstorming starten</label>
-                            <div class="description">Interaktiver Experten-Chat für kreative Ideenfindung</div>
-                        </div>
-                        
-                        <div class="radio-option" data-value="existing_format">
-                            <input type="radio" id="action_existing_format" name="action_type" value="existing_format">
-                            <label for="action_existing_format">🔄 Format weiterentwickeln</label>
-                            <div class="description">Bestehende Formate modernisieren und optimieren</div>
-                        </div>
-                        
-                        <div class="radio-option" data-value="new_development">
-                            <input type="radio" id="action_new_development" name="action_type" value="new_development">
-                            <label for="action_new_development">🆕 Neues Genre entwickeln</label>
-                            <div class="description">Komplett neue Formate in spezifischen Genres</div>
-                        </div>
-                        
-                        <div class="radio-option" data-value="pitch_paper">
-                            <input type="radio" id="action_pitch_paper" name="action_type" value="pitch_paper">
-                            <label for="action_pitch_paper">📄 Pitch Paper erstellen</label>
-                            <div class="description">Detailliertes Pitch-Dokument mit allen Parametern</div>
-                        </div>
-                    </div>
-                    
-                    <button type="button" id="confirm_selection_button" class="button hidden">
-                        Auswahl bestätigen & Weiter →
-                    </button>
+            <div class="mode-selector">
+                <div class="mode-card" data-mode="brainstorming">
+                    <div class="icon">💭</div>
+                    <h3>Brainstorming</h3>
+                    <p>Entwickle Ideen im Dialog mit einem erfahrenen TV-Experten</p>
                 </div>
-
-                <div id="common_info" class="section hidden">
-                    <div class="status-indicator active">
-                        📅 Arbeite tagesaktuell: <span class="current-date" id="current_date"></span>
-                    </div>
-                    <p style="margin-top: 15px; color: #4a5568;">
-                        <strong>Hinweis:</strong> Alle Recherchen, Marktanalysen und Trends werden auf Basis des aktuellen Datums durchgeführt.
-                    </p>
+                
+                <div class="mode-card" data-mode="existing">
+                    <div class="icon">🔄</div>
+                    <h3>Format weiterentwickeln</h3>
+                    <p>Verbessere und modernisiere bestehende Formate</p>
                 </div>
-
-                <!-- Brainstorming Section -->
-                <div id="brainstorming_section" class="section hidden">
-                    <h2>💬 Brainstorming-Modus</h2>
-                    <p style="color: #4a5568; margin-bottom: 20px;">
-                        Entwickle gemeinsam mit dem Experten neue Formatansätze durch gezielten Dialog.
-                    </p>
-
-                    <div id="brainstorming_chat_history" class="chat-history hidden">
-                        <h4 style="margin-bottom: 15px; color: #2d3748;">Bisherige Unterhaltung:</h4>
-                    </div>
-
-                    <label for="brainstorming_input">Deine Nachricht an den Experten:</label>
-                    <textarea id="brainstorming_input" name="brainstorming_input" 
-                              placeholder="Z.B. 'Ich habe eine vage Idee für eine Reality-Show im Bereich Nachhaltigkeit' oder 'Lass uns über neue Doku-Formate für TikTok nachdenken.'"></textarea>
-                    
-                    <input type="hidden" name="chat_history_json" id="chat_history_json">
+                
+                <div class="mode-card" data-mode="new">
+                    <div class="icon">✨</div>
+                    <h3>Neuentwicklung</h3>
+                    <p>Erstelle ein völlig neues Format in einem bestimmten Genre</p>
                 </div>
-
-                <!-- Existing Format Section -->
-                <div id="existing_format_section" class="section hidden">
-                    <h2>🔄 Format weiterentwickeln</h2>
-                    
-                    <div class="form-grid">
-                        <div>
-                            <label for="existing_format_name">Name des bestehenden Formats:</label>
-                            <input type="text" id="existing_format_name" name="existing_format_name" 
-                                   placeholder="Z.B. 'Der große Backwettbewerb'">
-                        </div>
-                    </div>
-
-                    <label for="existing_format_notes">Gewünschte Änderungen und Verbesserungen:</label>
-                    <textarea id="existing_format_notes" name="existing_format_notes" 
-                              placeholder="Z.B. 'Soll jünger werden', 'Mehr Social Media Integration', 'Neue Zielgruppe 18-34'"></textarea>
+                
+                <div class="mode-card" data-mode="pitch">
+                    <div class="icon">📋</div>
+                    <h3>Pitch Paper</h3>
+                    <p>Generiere ein professionelles Pitch-Dokument</p>
                 </div>
+            </div>
 
-                <!-- New Development Section -->
-                <div id="new_development_section" class="section hidden">
-                    <h2>🆕 Neues Genre entwickeln</h2>
-                    
-                    <div class="form-grid">
-                        <div>
-                            <label for="new_development_genre">Zielgenre:</label>
-                            <input type="text" id="new_development_genre" name="new_development_genre" 
-                                   placeholder="Z.B. 'Science-Fiction-Doku', 'True Crime Podcast'">
-                        </div>
-                    </div>
+            <div class="section" id="info-section">
+                <h2>📅 Arbeitsgrundlage</h2>
+                <p><strong>Aktuelles Datum:</strong> <span class="current-date" id="current-date"></span></p>
+                <p>Das Tool arbeitet mit aktuellen Marktdaten und Trends. Alle Analysen und Empfehlungen basieren auf dem neuesten Stand der TV- und Streaming-Landschaft.</p>
+            </div>
 
-                    <label for="new_development_initial_ideas">Erste Ideen und Ansätze:</label>
-                    <textarea id="new_development_initial_ideas" name="new_development_initial_ideas" 
-                              placeholder="Z.B. 'Soll um KI gehen', 'Protagonisten sind Teenager', 'Mystery-Komponente wichtig'"></textarea>
+            <!-- Brainstorming Section -->
+            <div class="section" id="brainstorming-section">
+                <h2>💭 Brainstorming-Modus</h2>
+                <div class="chat-container" id="chat-container">
+                    <p style="text-align: center; color: #666; font-style: italic;">Starte das Gespräch mit dem Experten...</p>
                 </div>
-
-                <!-- Pitch Paper Section -->
-                <div id="pitch_paper_section" class="section hidden">
-                    <h2>📄 Pitch Paper Template</h2>
-                    <p style="color: #4a5568; margin-bottom: 25px;">
-                        Erstelle ein vollständiges Pitch-Dokument für dein TV-/Streaming-Format.
-                    </p>
-
-                    <h3>🔹 1. Auftragsklärung</h3>
-                    <div class="checkbox-group">
-                        <div class="checkbox-option">
-                            <input type="checkbox" id="pp_existing_format_checkbox" name="pp_assignment_type" value="Weiterentwicklung eines bestehenden Formats">
-                            <label for="pp_existing_format_checkbox">Weiterentwicklung bestehender Formate</label>
-                        </div>
-                        <div class="checkbox-option">
-                            <input type="checkbox" id="pp_new_development_checkbox" name="pp_assignment_type" value="Neuentwicklung basierend auf Genre">
-                            <label for="pp_new_development_checkbox">Neuentwicklung nach Genre</label>
-                        </div>
-                    </div>
-
-                    <div class="form-grid">
-                        <div>
-                            <label for="pp_genre_input">Genre (falls Neuentwicklung):</label>
-                            <input type="text" id="pp_genre_input" name="pp_genre_input" placeholder="Genre eingeben" disabled>
-                        </div>
-                    </div>
-
-                    <h3>🔹 2. Marktanalyse (2020–2025)</h3>
-                    <div class="form-grid">
-                        <div>
-                            <label for="top_formats">Top 5 Formate (linear & Streaming):</label>
-                            <textarea id="top_formats" name="market_top_formats" style="min-height: 80px;"></textarea>
-                        </div>
-                        <div>
-                            <label for="market_shares">Marktanteile / Quoten:</label>
-                            <textarea id="market_shares" name="market_shares" style="min-height: 80px;"></textarea>
-                        </div>
-                    </div>
-
-                    <label for="genre_trends">Genre- & Formattrends:</label>
-                    <textarea id="genre_trends" name="market_genre_trends"></textarea>
-
-                    <label for="platform_trends">Plattformtrends:</label>
-                    <textarea id="platform_trends" name="market_platform_trends"></textarea>
-
-                    <h3>🔹 3. Formatentwicklung</h3>
-                    <div class="form-grid">
-                        <div>
-                            <label for="title_claim">Titel & Claim:</label>
-                            <input type="text" id="title_claim" name="format_title_claim">
-                        </div>
-                        <div>
-                            <label for="genre_setting_target">Genre, Setting, Zielgruppe:</label>
-                            <input type="text" id="genre_setting_target" name="format_genre_setting_target">
-                        </div>
-                    </div>
-
-                    <label for="tone_visual">Tonalität & visuelles Konzept:</label>
-                    <textarea id="tone_visual" name="format_tone_visual"></textarea>
-
-                    <label for="usp_zeitgeist">USP & Zeitgeist:</label>
-                    <textarea id="usp_zeitgeist" name="format_usp_zeitgeist"></textarea>
-
-                    <h3>🔹 4. Plattform- & Vermarktungsstrategie</h3>
-                    <div class="form-grid">
-                        <div>
-                            <label for="primary_platform">Primäre Plattform:</label>
-                            <input type="text" id="primary_platform" name="platform_primary">
-                        </div>
-                        <div>
-                            <label for="linear_utilization">Lineare Auswertung:</label>
-                            <input type="text" id="linear_utilization" name="platform_linear">
-                        </div>
-                    </div>
-
-                    <h3>🔹 5. Revision & Qualitätskontrolle</h3>
-                    <div class="checkbox-group">
-                        <div class="checkbox-option">
-                            <input type="checkbox" id="logic_checked" name="revision_logic" value="true">
-                            <label for="logic_checked">Logik geprüft</label>
-                        </div>
-                        <div class="checkbox-option">
-                            <input type="checkbox" id="data_trends_proven" name="revision_data_trends" value="true">
-                            <label for="data_trends_proven">Zahlen & Trends belegt</label>
-                        </div>
-                    </div>
+                <div class="form-group">
+                    <label for="brainstorming-input">Deine Nachricht:</label>
+                    <textarea id="brainstorming-input" placeholder="Z.B. 'Ich habe eine Idee für eine Reality-Show über Nachhaltigkeit' oder 'Lass uns über neue Doku-Formate nachdenken'"></textarea>
                 </div>
+                <button class="btn" id="send-message">
+                    <span>📤</span> Nachricht senden
+                </button>
+                <button class="btn secondary" id="reset-chat">
+                    <span>🔄</span> Chat zurücksetzen
+                </button>
+            </div>
 
-                <div class="section hidden" id="action_buttons">
-                    <button type="submit" id="submit_button" class="button">
-                        🚀 Generieren
-                    </button>
-                    <button type="button" id="reset_chat_button" class="button danger" style="margin-left: 15px;">
-                        🔄 Chat zurücksetzen
-                    </button>
+            <!-- Existing Format Section -->
+            <div class="section" id="existing-section">
+                <h2>🔄 Format weiterentwickeln</h2>
+                <div class="form-group">
+                    <label for="existing-name">Name des bestehenden Formats:</label>
+                    <input type="text" id="existing-name" placeholder="Z.B. 'Deutschland sucht den Superstar'">
                 </div>
-            </form>
+                <div class="form-group">
+                    <label for="existing-notes">Was soll verbessert werden?</label>
+                    <textarea id="existing-notes" placeholder="Z.B. 'Soll jünger werden', 'Mehr Social Media Integration', 'Neue Zielgruppe ansprechen'"></textarea>
+                </div>
+                <button class="btn" id="analyze-existing">
+                    <span>🔍</span> Format analysieren
+                </button>
+            </div>
 
-            <div id="response_container" class="response-container hidden">
-                <h3>💡 KI-Antwort:</h3>
-                <div id="response_text"></div>
+            <!-- New Development Section -->
+            <div class="section" id="new-section">
+                <h2>✨ Neuentwicklung</h2>
+                <div class="form-group">
+                    <label for="new-genre">Genre:</label>
+                    <input type="text" id="new-genre" placeholder="Z.B. 'Science-Fiction-Serie', 'True Crime Podcast', 'Kinder-Gameshow'">
+                </div>
+                <div class="form-group">
+                    <label for="new-ideas">Erste Ideen:</label>
+                    <textarea id="new-ideas" placeholder="Z.B. 'Soll um KI gehen', 'Zielgruppe sind Jugendliche', 'Mystery-Elemente'"></textarea>
+                </div>
+                <button class="btn" id="develop-new">
+                    <span>🚀</span> Entwicklung starten
+                </button>
+            </div>
+
+            <!-- Pitch Paper Section -->
+            <div class="section" id="pitch-section">
+                <h2>📋 Pitch Paper Generator</h2>
+                <div class="form-group">
+                    <label for="pitch-title">Titel des Formats:</label>
+                    <input type="text" id="pitch-title" placeholder="Z.B. 'Die ultimative Challenge'">
+                </div>
+                <div class="form-group">
+                    <label for="pitch-genre">Genre & Zielgruppe:</label>
+                    <input type="text" id="pitch-genre" placeholder="Z.B. 'Reality-TV, 20-35 Jahre'">
+                </div>
+                <div class="form-group">
+                    <label for="pitch-concept">Konzept (kurz):</label>
+                    <textarea id="pitch-concept" placeholder="Beschreibe das Grundkonzept in wenigen Sätzen"></textarea>
+                </div>
+                <button class="btn" id="generate-pitch">
+                    <span>📄</span> Pitch Paper generieren
+                </button>
+            </div>
+
+            <div class="response-container" id="response-container">
+                <h2>🤖 KI-Antwort</h2>
+                <div id="response-content"></div>
             </div>
         </div>
     </div>
 
     <script>
         // Globale Variablen
-        let chatHistory = [];
         let currentMode = null;
-
-        // DOM-Elemente
-        const form = document.getElementById('formatDevelopmentForm');
-        const confirmButton = document.getElementById('confirm_selection_button');
-        const submitButton = document.getElementById('submit_button');
-        const resetButton = document.getElementById('reset_chat_button');
-        const chatHistoryContainer = document.getElementById('brainstorming_chat_history');
-        const responseContainer = document.getElementById('response_container');
-        const responseText = document.getElementById('response_text');
-
+        let chatHistory = [];
+        
         // Aktuelles Datum setzen
-        document.getElementById('current_date').textContent = new Date().toLocaleDateString('de-DE', {
+        document.getElementById('current-date').textContent = new Date().toLocaleDateString('de-DE', {
             year: 'numeric',
             month: 'long',
             day: 'numeric'
         });
 
-        // Radio-Button-Handler
-        document.querySelectorAll('input[name="action_type"]').forEach(radio => {
-            radio.addEventListener('change', function() {
-                // Alle Optionen zurücksetzen
-                document.querySelectorAll('.radio-option').forEach(option => {
-                    option.classList.remove('selected');
-                });
+        // Mode Selection
+        document.querySelectorAll('.mode-card').forEach(card => {
+            card.addEventListener('click', () => {
+                // Deselect all cards
+                document.querySelectorAll('.mode-card').forEach(c => c.classList.remove('selected'));
                 
-                // Ausgewählte Option markieren
-                this.closest('.radio-option').classList.add('selected');
-                confirmButton.classList.remove('hidden');
-            });
-        });
-
-        // Bestätigung-Handler
-        confirmButton.addEventListener('click', function() {
-            const selectedAction = document.querySelector('input[name="action_type"]:checked');
-            if (!selectedAction) return;
-
-            currentMode = selectedAction.value;
-            
-            // Alle Sektionen verstecken
-            hideAllSections();
-            
-            // Gemeinsame Info anzeigen
-            document.getElementById('common_info').classList.remove('hidden');
-            document.getElementById('action_buttons').classList.remove('hidden');
-            
-            // Spezifische Sektion anzeigen
-            switch(currentMode) {
-                case 'brainstorming':
-                    document.getElementById('brainstorming_section').classList.remove('hidden');
-                    resetButton.classList.remove('hidden');
-                    chatHistory = []; // Chat-Historie zurücksetzen
+                // Select clicked card
+                card.classList.add('selected');
+                
+                // Hide all sections
+                document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+                
+                // Show info section
+                document.getElementById('info-section').classList.add('active');
+                
+                // Show relevant section
+                currentMode = card.dataset.mode;
+                const sectionId = currentMode + '-section';
+                document.getElementById(sectionId).classList.add('active');
+                
+                // Reset chat if switching modes
+                if (currentMode === 'brainstorming') {
+                    chatHistory = [];
                     updateChatDisplay();
-                    break;
-                case 'existing_format':
-                    document.getElementById('existing_format_section').classList.remove('hidden');
-                    resetButton.classList.add('hidden');
-                    break;
-                case 'new_development':
-                    document.getElementById('new_development_section').classList.remove('hidden');
-                    resetButton.classList.add('hidden');
-                    break;
-                case 'pitch_paper':
-                    document.getElementById('pitch_paper_section').classList.remove('hidden');
-                    resetButton.classList.add('hidden');
-                    break;
-            }
-        });
-
-        // Checkbox-Handler für Pitch Paper
-        document.getElementById('pp_new_development_checkbox').addEventListener('change', function() {
-            const genreInput = document.getElementById('pp_genre_input');
-            genreInput.disabled = !this.checked;
-            if (!this.checked) genreInput.value = '';
-        });
-
-        // Checkbox-Styling-Handler
-        document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
-            checkbox.addEventListener('change', function() {
-                const option = this.closest('.checkbox-option');
-                if (option) {
-                    option.classList.toggle('checked', this.checked);
                 }
             });
         });
 
-        // Form-Submit-Handler
-        form.addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            if (currentMode === 'brainstorming') {
-                await handleBrainstormingSubmit();
-            } else {
-                await handleRegularSubmit();
-            }
-        });
-
-        // Reset-Handler
-        resetButton.addEventListener('click', function() {
-            chatHistory = [];
-            updateChatDisplay();
-            document.getElementById('brainstorming_input').value = '';
-            responseContainer.classList.add('hidden');
-        });
-
-        // Hilfsfunktionen
-        function hideAllSections() {
-            const sections = [
-                'brainstorming_section',
-                'existing_format_section', 
-                'new_development_section',
-                'pitch_paper_section'
-            ];
-            sections.forEach(id => {
-                document.getElementById(id).classList.add('hidden');
-            });
-        }
-
+        // Chat functionality
         function updateChatDisplay() {
+            const container = document.getElementById('chat-container');
             if (chatHistory.length === 0) {
-                chatHistoryContainer.classList.add('hidden');
+                container.innerHTML = '<p style="text-align: center; color: #666; font-style: italic;">Starte das Gespräch mit dem Experten...</p>';
                 return;
             }
             
-            chatHistoryContainer.classList.remove('hidden');
-            const historyContent = chatHistoryContainer.querySelector('h4').nextSibling;
-            if (historyContent) historyContent.remove();
+            container.innerHTML = chatHistory.map(msg => `
+                <div class="chat-message ${msg.role}">
+                    <div class="role">${msg.role === 'user' ? 'Du' : 'TV-Experte'}</div>
+                    <div>${msg.content}</div>
+                </div>
+            `).join('');
             
-            chatHistory.forEach(message => {
-                const messageDiv = document.createElement('div');
-                messageDiv.className = `chat-message ${message.role}`;
-                messageDiv.innerHTML = `
-                    <div class="role">${message.role === 'user' ? '👤 Du' : '🤖 Experte'}:</div>
-                    <div>${message.content}</div>
-                `;
-                chatHistoryContainer.appendChild(messageDiv);
-            });
-            
-            chatHistoryContainer.scrollTop = chatHistoryContainer.scrollHeight;
+            container.scrollTop = container.scrollHeight;
         }
 
-        async function handleBrainstormingSubmit() {
-            const userInput = document.getElementById('brainstorming_input').value.trim();
+        function showResponse(content, isLoading = false) {
+            const container = document.getElementById('response-container');
+            const contentDiv = document.getElementById('response-content');
             
-            // User-Nachricht zur Historie hinzufügen (falls vorhanden)
-            if (userInput) {
-                chatHistory.push({ role: 'user', content: userInput });
+            if (isLoading) {
+                contentDiv.innerHTML = '<div class="loading">Generiere Antwort...</div>';
+            } else {
+                contentDiv.innerHTML = content.replace(/\n/g, '<br>');
             }
             
-            // Verstecktes Feld für Backend setzen
-            document.getElementById('chat_history_json').value = JSON.stringify(chatHistory);
+            container.classList.add('active');
+            container.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Simulate AI responses (replace with actual API calls)
+        function simulateAIResponse(prompt, mode) {
+            return new Promise((resolve) => {
+                setTimeout(() => {
+                    let response;
+                    
+                    switch (mode) {
+                        case 'brainstorming':
+                            if (chatHistory.length <= 1) {
+                                response = "Was wollen wir heute gemeinsam Verrücktes entwickeln? 🎬\n\nIch bin gespannt auf deine Idee! Lass uns zusammen erkunden, welches Format wir heute aus dem Boden stampfen können. Erzähl mir von deinem ersten Impuls - egal ob es nur ein vages Gefühl, ein Genre oder schon eine konkrete Vorstellung ist.";
+                            } else {
+                                response = "Interessant! Das klingt nach einem spannenden Ansatz. Lass mich ein paar gezielte Fragen stellen:\n\n• Welches Gefühl soll das Format bei der Zielgruppe auslösen?\n• Auf welchen Plattformen siehst du das am stärksten performen?\n• Wie interaktiv soll es werden?\n\nWas denkst du dazu?";
+                            }
+                            break;
+                        case 'existing':
+                            response = "Exzellente Wahl für eine Weiterentwicklung! Ich sehe großes Potenzial in der Modernisierung dieses Formats.\n\nMeine ersten Überlegungen:\n• Zielgruppe verjüngen durch Social Media Integration\n• Neue Voting-Mechanismen einführen\n• Crossmediale Verwertung optimieren\n\nSoll ich tiefer in einen dieser Bereiche einsteigen?";
+                            break;
+                        case 'new':
+                            response = "Fantastisches Genre! Hier sind meine ersten Impulse für die Entwicklung:\n\n**Marktchancen:** Sehr gut - das Genre ist unterrepräsentiert\n**Zielgruppe:** Primär 25-45, Secondary 16-34\n**Plattform-Fit:** Perfect für Streaming, gute lineare Verwertung\n\nLass uns das Konzept schärfen. Welche Stimmung soll dominieren?";
+                            break;
+                        case 'pitch':
+                            response = "# PITCH PAPER: " + (document.getElementById('pitch-title').value || 'Neues Format') + "\n\n## Executive Summary\nInnovatives Format mit hohem Marktpotenzial...\n\n## Zielgruppe & Marktanalyse\n[Detaillierte Analyse basierend auf aktuellen Trends]\n\n## Formatbeschreibung\n[Vollständige Konzeptbeschreibung]\n\n## Produktionsrahmen\n[Budget, Timeline, Ressourcen]\n\n## Verwertungsstrategie\n[Multi-Platform-Ansatz]";
+                            break;
+                        default:
+                            response = "Wie kann ich dir bei der Formatentwicklung helfen?";
+                    }
+                    
+                    resolve(response);
+                }, 1500);
+            });
+        }
+
+        // Event Listeners
+        document.getElementById('send-message').addEventListener('click', async () => {
+            const input = document.getElementById('brainstorming-input');
+            const message = input.value.trim();
             
-            // Input-Feld leeren
-            document.getElementById('brainstorming_input').value = '';
+            if (!message) return;
             
-            // Chat-Display aktualisieren
+            // Add user message to chat
+            chatHistory.push({ role: 'user', content: message });
             updateChatDisplay();
             
-            // API-Aufruf
-            await makeApiCall();
-        }
-
-        async function handleRegularSubmit() {
-            await makeApiCall();
-        }
-
-        async function makeApiCall() {
-            // Loading-Zustand anzeigen
-            responseText.innerHTML = '<div class="loading">Generiere Antwort...</div>';
-            responseContainer.classList.remove('hidden');
+            // Clear input
+            input.value = '';
             
-            try {
-                const formData = new FormData(form);
-                
-                // Mock API-Aufruf (ersetze durch deine echte API)
-                const response = await simulateApiCall(formData);
-                
-                responseText.textContent = response;
-                
-                // Bei
+            // Show loading
+            showResponse('', true);
+            
+            // Get AI response
+            const aiResponse = await simulateAIResponse(message, 'brainstorming');
+            chatHistory.push({ role: 'assistant', content: aiResponse });
+            
+            // Update displays
+            updateChatDisplay();
+            showResponse(aiResponse);
+        });
+
+        document.getElementById('reset-chat').addEventListener('click', () => {
+            chatHistory = [];
+            updateChatDisplay();
+            document.getElementById('response-container').classList.remove('active');
+        });
+
+        document.getElementById('analyze-existing').addEventListener('click', async () => {
+            const name = document.getElementById('existing-name').value;
+            const notes = document.getElementById('existing-notes').value;
+            
+            if (!name) {
+                alert('Bitte gib den Namen des Formats ein.');
+                return;
+            }
+            
+            showResponse('', true);
+            const response = await simulateAIResponse(`${name}: ${notes}`, 'existing');
+            showResponse(response);
+        });
+
+        document.getElementById('develop-new').addEventListener('click', async () => {
+            const genre = document.getElementById('new-genre').value;
+            const ideas = document.getElementById('new-ideas').value;
+            
+            if (!genre) {
+                alert('Bitte gib ein Genre ein.');
+                return;
+            }
+            
+            showResponse('', true);
+            const response = await simulateAIResponse(`${genre}: ${ideas}`, 'new');
+            showResponse(response);
+        });
+
+        document.getElementById('generate-pitch').addEventListener('click', async () => {
+            const title = document.getElementById('pitch-title').value;
+            const genre = document.getElementById('pitch-genre').value;
+            const concept = document.getElementById('pitch-concept').value;
+            
+            if (!title || !genre || !concept) {
+                alert('Bitte fülle alle Felder aus.');
+                return;
+            }
+            
+            showResponse('', true);
+            const response = await simulateAIResponse(`${title} - ${genre} - ${concept}`, 'pitch');
+            showResponse(response);
+        });
+
+        // Enter key support for brainstorming
+        document.getElementById('brainstorming-input').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                document.getElementById('send-message').click();
+            }
+        });
+    </script>
+</body>
+</html>
