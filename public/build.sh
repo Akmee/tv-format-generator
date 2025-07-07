@@ -1,15 +1,9 @@
 #!/bin/bash
 
-# Dieses Skript wird von Vercel während des Build-Prozesses ausgeführt.
+# Ersetze den Platzhalter in der index.html mit dem Key
+sed "s|%%OPENAI_API_KEY%%|${OPENAI_API_KEY}|g" index.html > index-temp.html
 
-# 1. Ersetze den Platzhalter in der HTML-Datei mit dem echten API-Key,
-#    der als Umgebungsvariable in Vercel gespeichert ist.
-#    WARNUNG: Dies schreibt den Key in die HTML-Datei, die Vercel bereitstellt.
-#    Der Key ist NICHT im Git-Repository sichtbar.
-sed "s|%%OPENAI_API_KEY%%|${OPENAI_API_KEY}|g" index.html > vercel-build-output.html
+# Ersetze die alte index.html mit der neuen
+mv index-temp.html index.html
 
-# 2. Überschreibe die originale index.html mit der neuen Datei, die den Key enthält.
-#    Vercel wird dann diese Datei bereitstellen.
-mv vercel-build-output.html index.html
-
-echo "Build abgeschlossen: OpenAI API Key wurde in index.html injiziert."
+echo "Build abgeschlossen: API Key wurde in index.html injiziert."
